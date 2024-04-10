@@ -14,12 +14,16 @@ def claims_total():
     print(nb_cw_total)
     return nb_cw_total, nb_cr_total
 
+#toutes les claims
+
 
 ########################Get number of total claims
 def claims_total_for_df(df_complete):
     nb_cw_total = len(df_complete['id2'].unique())
     # print(nb_cw_total)#28354
     return nb_cw_total
+
+#pareil mais en ne prenant que le deuxieme id
 
 
 #########################Number of claims with entities
@@ -31,6 +35,8 @@ def claim_with_entities():
     nb_cw_with_ent = len(df_filter['id2'].unique())
     nb_cw_with_ent1 = len(df_filter['id1'].unique())
     return nb_cw_with_ent, nb_cw_with_ent1
+
+
 
 
 def percent_claim_with_entities():
