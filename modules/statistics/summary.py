@@ -9,6 +9,7 @@ from modules.dataframes.dataframe_singleton import df_complete
 def claims_total():
     nb_cw_total = len(df_complete['id2'].unique())
     nb_cr_total = len(df_complete['id1'].unique())
+    print(nb_cw_total)
     return nb_cw_total, nb_cr_total
 
 
@@ -240,20 +241,17 @@ def total_claim_review():
 # total_claim_review()
 
 def get_dates():
-    min1 = df_complete['date1'].dropna().min()
+    min1 = pandas.to_datetime(df_complete['date1'].dropna(), errors='coerce').min()
+    max1 = pandas.to_datetime(df_complete['date1'].dropna(), errors='coerce').max()
+    min2 = pandas.to_datetime(df_complete['date2'].dropna(), errors='coerce').min()
+    max2 = pandas.to_datetime(df_complete['date2'].dropna(), errors='coerce').max()
+
     # min1 = pd.to_datetime(min1.dt.strftime('%B %d, %Y'))
-    min1 = pandas.to_datetime(min1)
     min1 = min1.strftime('%B %d, %Y')
     # print(min1)
-    max1 = df_complete['date1'].dropna().max()
-    max1 = pandas.to_datetime(max1)
     max1 = max1.strftime('%B %d, %Y')
-    min2 = df_complete['date2'].dropna().min()
-    min2 = pandas.to_datetime(min2)
     min2 = min2.strftime('%B %d, %Y')
     # min2 = min2.strftime('%B %d, %Y')
-    max2 = df_complete['date2'].dropna().max()
-    max2 = pandas.to_datetime(max2)
     max2 = max2.strftime('%B %d, %Y')
 
     return min1, max1, min2, max2
