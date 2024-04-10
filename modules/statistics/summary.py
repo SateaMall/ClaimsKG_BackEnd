@@ -5,6 +5,8 @@ import pandas
 from modules.dataframes.dataframe_singleton import df_complete
 
 
+#s'occupe de retourner des données pour les graphes
+
 ########################Get number of total claims
 def claims_total():
     nb_cw_total = len(df_complete['id2'].unique())

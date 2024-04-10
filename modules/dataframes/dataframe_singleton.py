@@ -1,7 +1,10 @@
 from pathlib import Path
 import pandas
 
-pandas.set_option('display.max_colwidth', None)
+#invoque un fichier .csv
+
+pandas.set_option('display.max_colwidth', -1)
+
 pandas.set_option('display.max_columns', None)
 base_path = Path(__file__).parent.parent
 file_path = (base_path / "df_complete.csv").resolve()

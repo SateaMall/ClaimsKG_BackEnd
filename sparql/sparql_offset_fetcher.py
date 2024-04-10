@@ -3,6 +3,9 @@ import json
 import redis
 from SPARQLWrapper import JSON
 
+#classe pour manipuler facilement les requettes sparql 
+
+
 try:
     r = redis.StrictRedis()
 except:
