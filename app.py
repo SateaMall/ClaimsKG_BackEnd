@@ -17,8 +17,8 @@ def update_global_df():
 def graph_per_label_date():
     return 5
 
-@app.route ("/")
-def index():
+@app.route ("/resume")
+def resume():
     return dico_numbers_resume()
 
 
