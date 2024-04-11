@@ -2,7 +2,10 @@ from flask import Flask
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
 from modules.statistics.summary import dico_numbers_resume
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app)
 
 @app.route ("/update_label_df")
 def update_label_df():
@@ -20,8 +23,6 @@ def graph_per_label_date():
 @app.route ("/resume")
 def resume():
     return dico_numbers_resume()
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
