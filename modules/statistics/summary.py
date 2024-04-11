@@ -81,7 +81,7 @@ def claims_per_date_label():
     return filtre_group_notna
 
 def number_entity():
-    df_sample = df_complete.sample(n=10000, random_state=42) 
+    df_sample = df_complete.sample(n=1000, random_state=42) 
     filtre = df_sample['entity'].notna()
     df_filtre = df_sample[filtre] 
     filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
