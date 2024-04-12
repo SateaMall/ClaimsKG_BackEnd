@@ -62,7 +62,7 @@ def avg_ent_per_claims():
 
 
 def claims_per_source_label():
-    filtre = df_complete['source'].notna()
+    filtre = df_complete.notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
@@ -71,9 +71,8 @@ def claims_per_source_label():
     return filtre_group_notna
 
 def claims_per_date_label():
-    df_sample = df_complete.sample(n=100, random_state=42) 
-    filtre = df_sample['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_sample['date1'].notna()
-    df_filtre = df_sample[filtre]
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
     filtre_group_notna = df_filtre2.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
@@ -81,9 +80,8 @@ def claims_per_date_label():
     return filtre_group_notna
 
 def number_entity():
-    df_sample = df_complete.sample(n=1000, random_state=42) 
-    filtre = df_sample['entity'].notna()
-    df_filtre = df_sample[filtre] 
+    filtre = df_complete['entity'].notna()
+    df_filtre = df_complete[filtre] 
     filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
     
     return filtre_group_notna
@@ -288,9 +286,9 @@ def get_dates():
     min1 = min1.strftime('%B %d, %Y')
     # print(min1)
     max1 = max1.strftime('%B %d, %Y')
-    min2 = min2.strftime('%B %d, %Y')
     # min2 = min2.strftime('%B %d, %Y')
-    max2 = max2.strftime('%B %d, %Y')
+    # min2 = min2.strftime('%B %d, %Y')
+    # max2 = max2.strftime('%B %d, %Y')
 
     return min1, max1, min2, max2
 
