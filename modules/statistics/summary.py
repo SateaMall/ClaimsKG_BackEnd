@@ -5,6 +5,8 @@ import pandas
 from modules.dataframes.dataframe_singleton import df_complete
 
 
+#s'occupe de retourner des données pour les graphes
+
 ########################Get number of total claims
 def claims_total():
     nb_cw_total = len(df_complete['id2'].unique())
@@ -12,12 +14,16 @@ def claims_total():
     print(nb_cw_total)
     return nb_cw_total, nb_cr_total
 
+#toutes les claims
+
 
 ########################Get number of total claims
 def claims_total_for_df(df_complete):
     nb_cw_total = len(df_complete['id2'].unique())
     # print(nb_cw_total)#28354
     return nb_cw_total
+
+#pareil mais en ne prenant que le deuxieme id
 
 
 #########################Number of claims with entities
@@ -29,6 +35,8 @@ def claim_with_entities():
     nb_cw_with_ent = len(df_filter['id2'].unique())
     nb_cw_with_ent1 = len(df_filter['id1'].unique())
     return nb_cw_with_ent, nb_cw_with_ent1
+
+
 
 
 def percent_claim_with_entities():
@@ -51,6 +59,36 @@ def avg_ent_per_claims():
     all = filtre_group_notna['counts'].sum()
     moy_all = round(all / claims_total()[0], 2)
     return moy, moy_all
+
+
+def claims_per_source_label():
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    filtre_group_notna = df_filtre2.groupby(['source','label'])['source'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
+def claims_per_date_label():
+    df_sample = df_complete.sample(n=100, random_state=42) 
+    filtre = df_sample['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_sample['date1'].notna()
+    df_filtre = df_sample[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    filtre_group_notna = df_filtre2.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+
+    return filtre_group_notna
+
+def number_entity():
+    df_sample = df_complete.sample(n=1000, random_state=42) 
+    filtre = df_sample['entity'].notna()
+    df_filtre = df_sample[filtre] 
+    filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
+
 
 
 def moy_ent_per_claims_for_df(dataframe):
@@ -332,3 +370,50 @@ def dico_numbers_resume():
     list_json = json.dumps(list)
     # print(list_json)
     return list_json
+
+def json_per_source_label():
+    data_length= len(claims_per_source_label())
+    list = []
+
+
+    for i in range(data_length):
+        list.append( {
+        "Source": str(claims_per_source_label()['source'][i]),
+        "Label": str(claims_per_source_label()['label'][i]),
+        "Numbers of claims": str(claims_per_source_label()['counts'][i])
+        })
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
+
+def json_per_date1_label():
+    data_length= len(claims_per_date_label())
+    list = []
+
+
+    for i in range(data_length):
+        list.append( {
+        "Date1": str(claims_per_date_label()['date1'][i]),
+        "Label": str(claims_per_date_label()['label'][i]),
+        "Numbers of claims": str(claims_per_date_label()['counts'][i])
+        })
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
+
+def json_per_entity():
+    data_length= len(number_entity())
+    list = []
+
+    for i in range(data_length):
+        list.append( {
+        "Entity": str(number_entity()['entity'][i]),
+        "Numbers of claims": str(number_entity()['counts'][i])
+        })
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
+

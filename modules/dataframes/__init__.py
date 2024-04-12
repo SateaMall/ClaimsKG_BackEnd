@@ -5,6 +5,10 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 
 from sparql.sparql_offset_fetcher import SparQLOffsetFetcher
 
+
+#ici on créer les fichiers .csv et 
+
+
 pandas.set_option('display.max_colwidth', None)
 pandas.set_option('display.max_columns', None)
 endpoint = "https://data.gesis.org/claimskg/sparql"
