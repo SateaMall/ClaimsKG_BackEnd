@@ -64,6 +64,8 @@ def avg_ent_per_claims():
     return moy, moy_all
 
 
+#######################################Nous
+
 def claims_per_source_label():
     filtre = df_complete.notna()
     df_filtre = df_complete[filtre]
@@ -110,6 +112,7 @@ def number_entity():
     print(filtre_group_notna)
     return filtre_group_notna
 
+############################################################
 
 
 def moy_ent_per_claims_for_df(dataframe):
