@@ -64,17 +64,16 @@ def avg_ent_per_claims():
     return moy, moy_all
 
 
+#######################################Nous
+
 def claims_per_source_label():
     filtre = df_complete.notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
-    filtre_group_notna = df_filtre2.groupby(['id1', 'source', 'label'])['source'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre2.groupby(['source','label'])['source'].size().reset_index(name='counts')
     
-    # Perform another groupby on the result
-    final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
-    
-    return final_grouped
+    return filtre_group_notna
 
 def claims_per_date_label():
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna() & df_complete['label'].notna()
@@ -113,6 +112,7 @@ def number_entity():
     print(filtre_group_notna)
     return filtre_group_notna
 
+############################################################
 
 
 def moy_ent_per_claims_for_df(dataframe):
@@ -387,9 +387,10 @@ def dico_numbers_resume():
         {"Numbers of claims ": str(total[0]),
          "Numbers of claims review ": str(total_claim_review()),
          "Since ": str(get_dates()[2]), "to ": str(get_dates()[1]),
-         "Numbers of authors ": str(numbers_of_author()),
+         #"Numbers of authors ": str(numbers_of_author()),
          "Numbers of entities ": str(numbers_of_entities()),
-         "Numbers of keywords ": str(numbers_keywords())}]
+         #"Numbers of keywords ": str(numbers_keywords())
+         }]
 
     list_json = json.dumps(list)
     # print(list_json)
@@ -495,4 +496,3 @@ def json_per_entity():
     list_json = json.dumps(list)
     # print(list_json)
     return list_json
-
