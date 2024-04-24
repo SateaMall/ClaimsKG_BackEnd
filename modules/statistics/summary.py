@@ -69,9 +69,12 @@ def claims_per_source_label():
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
-    filtre_group_notna = df_filtre2.groupby(['source','label'])['source'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre2.groupby(['id1', 'source', 'label'])['source'].size().reset_index(name='counts')
     
-    return filtre_group_notna
+    # Perform another groupby on the result
+    final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
+    
+    return final_grouped
 
 def claims_per_date_label():
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna() & df_complete['label'].notna()
