@@ -3,7 +3,10 @@ import json
 import pandas
 
 from modules.dataframes.dataframe_singleton import df_complete
-
+from modules.dataframes.dataframe_singleton import df_Source_labelFALSE
+from modules.dataframes.dataframe_singleton import df_Source_labelMIXTURE
+from modules.dataframes.dataframe_singleton import df_Source_labelOTHER
+from modules.dataframes.dataframe_singleton import df_Source_labelTRUE
 
 #s'occupe de retourner des données pour les graphes
 
@@ -71,21 +74,41 @@ def claims_per_source_label():
     return filtre_group_notna
 
 def claims_per_date_label():
-    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
-    df_filtre = df_complete[filtre]
-    filtre2 = df_filtre['label'].notna() 
-    df_filtre2 = df_filtre[filtre2]
-    filtre_group_notna = df_filtre2.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna() & df_complete['label'].notna()
+
+    df_filtre = df_complete.loc[filtre, ['date1', 'label']]
+    filtre_group_notna = df_filtre.groupby(['date1', 'label']).size().reset_index(name='counts')
 
     return filtre_group_notna
+
+def claims_per_source_label_true():
+    grouped_df = df_Source_labelTRUE.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def claims_per_source_label_false():
+    grouped_df = df_Source_labelFALSE.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def claims_per_source_label_mixture():
+    grouped_df = df_Source_labelMIXTURE.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def claims_per_source_label_other():
+    grouped_df = df_Source_labelOTHER.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
 
 def number_entity():
     filtre = df_complete['entity'].notna()
-    df_filtre = df_complete[filtre] 
-    filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
-    
-    return filtre_group_notna
+    df_filtre = df_complete.loc[filtre, ['entity']]
+    filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
+    filtre_group_notna.columns = ['entity', 'counts']
 
+    print(filtre_group_notna)
+    return filtre_group_notna
 
 
 
@@ -368,17 +391,70 @@ def dico_numbers_resume():
     list_json = json.dumps(list)
     # print(list_json)
     return list_json
+    
+def json_per_source_label_true():
+
+    grouped_label = claims_per_source_label_true()
+    json_grouped = []
+
+    for i in range(len(grouped_label)):
+        json_grouped.append( {
+        "source": str(grouped_label['source'][i]),
+        "counts": str(grouped_label['counts'][i])
+        })
+
+    return json.dumps(json_grouped)
+
+def json_per_source_label_false():
+
+    grouped_label = claims_per_source_label_false()
+    json_grouped = []
+
+    for i in range(len(grouped_label)):
+        json_grouped.append( {
+        "source": str(grouped_label['source'][i]),
+        "counts": str(grouped_label['counts'][i])
+        })
+
+    return json.dumps(json_grouped)
+
+def json_per_source_label_mixture():
+
+    grouped_label = claims_per_source_label_mixture()
+    json_grouped = []
+
+    for i in range(len(grouped_label)):
+        json_grouped.append( {
+        "source": str(grouped_label['source'][i]),
+        "counts": str(grouped_label['counts'][i])
+        })
+
+    return json.dumps(json_grouped)
+
+def json_per_source_label_other():
+
+    grouped_label = claims_per_source_label_other()
+    json_grouped = []
+
+    for i in range(len(grouped_label)):
+        json_grouped.append( {
+        "source": str(grouped_label['source'][i]),
+        "counts": str(grouped_label['counts'][i])
+        })
+
+    return json.dumps(json_grouped)
 
 def json_per_source_label():
-    data_length= len(claims_per_source_label())
+    claims_per_source_label_fetch = claims_per_source_label()
+    data_length= len(claims_per_source_label_fetch)
     list = []
 
 
     for i in range(data_length):
         list.append( {
-        "Source": str(claims_per_source_label()['source'][i]),
-        "Label": str(claims_per_source_label()['label'][i]),
-        "Numbers of claims": str(claims_per_source_label()['counts'][i])
+        "Source": str(claims_per_source_label_fetch['source'][i]),
+        "Label": str(claims_per_source_label_fetch['label'][i]),
+        "Numbers of claims": str(claims_per_source_label_fetch['counts'][i])
         })
 
     list_json = json.dumps(list)
@@ -386,29 +462,31 @@ def json_per_source_label():
     return list_json
 
 def json_per_date1_label():
-    data_length= len(claims_per_date_label())
-    list = []
+    list_claims = claims_per_date_label()
+    data_length= len(list_claims)
+    list_claims_gerer = []
 
 
     for i in range(data_length):
-        list.append( {
-        "Date1": str(claims_per_date_label()['date1'][i]),
-        "Label": str(claims_per_date_label()['label'][i]),
-        "Numbers of claims": str(claims_per_date_label()['counts'][i])
+        list_claims_gerer.append( {
+        "Date1": str(list_claims['date1'][i]),
+        "Label": str(list_claims['label'][i]),
+        "Numbers of claims": str(list_claims['counts'][i])
         })
 
-    list_json = json.dumps(list)
-    # print(list_json)
+    list_json = json.dumps(list_claims_gerer)
+    print(list_json)
     return list_json
 
 def json_per_entity():
-    data_length= len(number_entity())
+    number_entity_fetch = number_entity()
+    data_length= len(number_entity_fetch)
     list = []
 
     for i in range(data_length):
         list.append( {
-        "Entity": str(number_entity()['entity'][i]),
-        "Numbers of claims": str(number_entity()['counts'][i])
+        "Entity": str(number_entity_fetch['entity'][i]),
+        "Numbers of claims": str(number_entity_fetch['counts'][i])
         })
 
     list_json = json.dumps(list)
