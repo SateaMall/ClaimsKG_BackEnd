@@ -387,9 +387,10 @@ def dico_numbers_resume():
         {"Numbers of claims ": str(total[0]),
          "Numbers of claims review ": str(total_claim_review()),
          "Since ": str(get_dates()[2]), "to ": str(get_dates()[1]),
-         "Numbers of authors ": str(numbers_of_author()),
+         #"Numbers of authors ": str(numbers_of_author()),
          "Numbers of entities ": str(numbers_of_entities()),
-         "Numbers of keywords ": str(numbers_keywords())}]
+         #"Numbers of keywords ": str(numbers_keywords())
+         }]
 
     list_json = json.dumps(list)
     # print(list_json)

@@ -24,14 +24,13 @@ def update_label_df():
 def update_global_df():
     return generate_global_dataframe()
 
-##TODO add rest api
 @app.route ("/graph/perlabeldate")
 def graph_per_label_date():
     return 5
 
 @app.route ("/resume")
 def resume():
-    return moy_ent_per_claims_for_df(df_complete)
+    return dico_numbers_resume()
 
 @app.route("/json_per_source_label")
 def json():
