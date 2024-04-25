@@ -1,11 +1,15 @@
 from flask import Flask
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import json_per_source_label
+from modules.statistics.summary import list_resume_claims_per_source_label
+from modules.statistics.summary import list_resume_borne_date1_date2
+from modules.statistics.summary import list_resume_borne_entities
+from modules.statistics.summary import list_resume_borne_source
+
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
-from modules.statistics.summary import json_per_date1_label
-from modules.statistics.summary import json_per_entity
+from modules.statistics.summary import list_resume_claims_per_date_label
+from modules.statistics.summary import entity
 
 app = Flask(__name__)
 CORS(app)
@@ -29,17 +33,27 @@ def resume():
 
 @app.route("/json_per_source_label")
 def json():
-    return json_per_source_label()
+    return list_resume_claims_per_source_label()
 
 @app.route("/json_per_date1_label")
 def json2():
-    return json_per_date1_label()
+    return list_resume_claims_per_date_label()
 
 @app.route("/json_per_entity")
 def json3():
-    return json_per_entity()
+    return entity()
 
+@app.route("/json_born_date")
+def json4():
+    return list_resume_borne_date1_date2()
 
+@app.route("/json_born_entity")
+def json5():
+    return list_resume_borne_entities()
+
+@app.route("/json_born_source")
+def json6():
+    return list_resume_borne_source()
 
 if __name__ == '__main__':
     app.run(debug=True)
