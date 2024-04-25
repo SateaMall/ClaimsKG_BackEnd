@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, request
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import json_per_source_label
+from modules.statistics.summary import json_per_source_label, suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
 from modules.statistics.summary import json_per_date1_label
@@ -59,6 +59,12 @@ def json6():
 @app.route("/json_per_other")
 def json7():
     return json_per_source_label_other()
+
+
+@app.route('/suggestions-entity', methods=['GET'])
+def suggestions_entity():
+    query = request.args.get('query', default='', type=str)
+    return suggestions(query)
 
 if __name__ == '__main__':
     app.run(debug=True)
