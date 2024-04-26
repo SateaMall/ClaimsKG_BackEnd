@@ -552,3 +552,12 @@ def json_per_entity():
     list_json = json.dumps(list)
     # print(list_json)
     return list_json
+
+
+### Suggestions for the searching part
+
+def suggestions(query):
+
+    suggestions = df_complete[df_complete['entity'].str.contains(query, case=False)]  
+    matches = suggestions['entity'].drop_duplicates().tolist() 
+    return matches
