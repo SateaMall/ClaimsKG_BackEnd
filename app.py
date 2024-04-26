@@ -1,11 +1,15 @@
 from flask import Flask
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import json_per_source_label
+from modules.statistics.summary import json_per_date1_label
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
-from modules.statistics.summary import json_per_date1_label
+from modules.statistics.summary import json_per_source_label
 from modules.statistics.summary import json_per_entity
+from modules.statistics.summary import json_number_false
+from modules.statistics.summary import json_number_true
+from modules.statistics.summary import json_number_mixture
+from modules.statistics.summary import json_number_other
 from modules.statistics.summary import moy_ent_per_claims_for_df 
 from modules.statistics.summary import json_per_source_label_true
 from modules.statistics.summary import json_per_source_label_false
@@ -36,9 +40,9 @@ def resume():
 def json():
     return json_per_source_label()
 
-@app.route("/json_per_date1_label")
-def json2():
-    return json_per_date1_label()
+@app.route("/json_per_date1_label/<date1>/<date2>")
+def json2(date1,date2):
+    return json_per_date1_label(date1,date2)
 
 @app.route("/json_per_entity")
 def json3():
@@ -59,6 +63,22 @@ def json6():
 @app.route("/json_per_other")
 def json7():
     return json_per_source_label_other()
+
+@app.route("/number_false")
+def json_number_false_end():
+    return json_number_false()
+
+@app.route("/number_true")
+def json_number_true_end():
+    return json_number_true()
+
+@app.route("/number_mixture")
+def json_number_mixture_end():
+    return json_number_mixture()
+
+@app.route("/number_other")
+def json_number_other_end():
+    return json_number_other()
 
 if __name__ == '__main__':
     app.run(debug=True)

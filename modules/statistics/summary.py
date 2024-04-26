@@ -67,23 +67,30 @@ def avg_ent_per_claims():
 #######################################Nous
 
 def claims_per_source_label():
-    filtre = df_complete.notna()
+    filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
-    filtre_group_notna = df_filtre2.groupby(['id1', 'source', 'label'])['source'].size().reset_index(name='counts')
-    
+    filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
+
     # Perform another groupby on the result
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
-    
+
     return final_grouped
 
 def claims_per_date_label():
-    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna() & df_complete['label'].notna()
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    filtre_group_notna = df_filtre2.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
 
-    df_filtre = df_complete.loc[filtre, ['date1', 'label']]
-    filtre_group_notna = df_filtre.groupby(['date1', 'label']).size().reset_index(name='counts')
+    return filtre_group_notna
 
+def number_entity():
+    filtre = df_complete['entity'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
     return filtre_group_notna
 
 def claims_per_source_label_true():
@@ -106,11 +113,32 @@ def claims_per_source_label_other():
     print(grouped_df)
     return grouped_df
 
+def number_label_false():
+    counts = df_Source_labelFALSE.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+def number_label_true():
+    counts = df_Source_labelTRUE.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+def number_label_mixture():
+    counts = df_Source_labelMIXTURE.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+def number_label_other():
+    counts = df_Source_labelOTHER.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
 def number_entity():
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete.loc[filtre, ['entity']]
     filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
     filtre_group_notna.columns = ['entity', 'counts']
+    filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(10)
 
     print(filtre_group_notna)
     return filtre_group_notna
@@ -451,6 +479,30 @@ def json_per_source_label_other():
 
     return json.dumps(json_grouped)
 
+def json_number_false():
+
+    return ( {
+    "counts": str(len(number_label_false()))
+    })
+
+def json_number_true():
+
+    return ( {
+    "counts": str(len(number_label_true()))
+    })
+
+def json_number_mixture():
+
+    return ( {
+    "counts": str(len(number_label_mixture()))
+    })
+
+def json_number_other():
+
+    return ( {
+    "counts": str(len(number_label_other()))
+    })
+
 def json_per_source_label():
     claims_per_source_label_fetch = claims_per_source_label()
     data_length= len(claims_per_source_label_fetch)
@@ -468,7 +520,8 @@ def json_per_source_label():
     # print(list_json)
     return list_json
 
-def json_per_date1_label():
+def json_per_date1_label(date1,date2):
+    print(date1)
     list_claims = claims_per_date_label()
     data_length= len(list_claims)
     list_claims_gerer = []
@@ -482,7 +535,7 @@ def json_per_date1_label():
         })
 
     list_json = json.dumps(list_claims_gerer)
-    print(list_json)
+    # print(list_json)
     return list_json
 
 def json_per_entity():
