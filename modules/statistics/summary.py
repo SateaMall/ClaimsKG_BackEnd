@@ -1,5 +1,6 @@
 import json
 
+from flask import current_app, jsonify
 import pandas
 
 from modules.dataframes.dataframe_singleton import df_complete
@@ -555,9 +556,12 @@ def json_per_entity():
 
 
 ### Suggestions for the searching part
-
 def suggestions(query):
-
-    suggestions = df_complete[df_complete['entity'].str.contains(query, case=False)]  
-    matches = suggestions['entity'].drop_duplicates().tolist() 
-    return matches
+    try:
+        suggestions = df_complete[df_complete['entity'].fillna('').str.contains(query, case=False, na=False)]
+ 
+        matches = suggestions['entity'].drop_duplicates().tolist() 
+        return jsonify(matches)
+    except Exception as e:
+        current_app.logger.error(f'Error processing request: {str(e)}')
+        return jsonify(error=str(e)), 500

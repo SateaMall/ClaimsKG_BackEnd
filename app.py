@@ -83,7 +83,7 @@ def json_number_other_end():
 
 @app.route('/suggestions', methods=['GET'])
 def suggestions_entity():
-    query = request.args.get('query', default='', type=str)
+    query = request.args.get('query')
     return suggestions(query)
 
 if __name__ == '__main__':
