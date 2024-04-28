@@ -81,7 +81,7 @@ def json_number_mixture_end():
 def json_number_other_end():
     return json_number_other()
 
-@app.route('/suggestions-entity', methods=['GET'])
+@app.route('/suggestions', methods=['GET'])
 def suggestions_entity():
     query = request.args.get('query', default='', type=str)
     return suggestions(query)
