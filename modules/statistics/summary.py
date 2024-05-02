@@ -585,8 +585,19 @@ def suggestions(query):
         print(result)  # Debugging
         return jsonify(result)
 
-        print(result)
-        return jsonify(result)
     except Exception as e:
         current_app.logger.error(f'Error processing request: {str(e)}')
         return jsonify(error=str(e)), 500
+    
+
+### Searching Form treatement
+def json_entity_dates_searchs(selectedEntities,firstDate,lastDate):
+    try:
+        result=selectedEntities
+        print(result)  # Debugging
+        return jsonify(result)
+
+    except Exception as e:
+        current_app.logger.error(f'Error processing request: {str(e)}')
+        return jsonify(error=str(e)), 500
+    
