@@ -138,7 +138,7 @@ def number_entity():
     df_filtre = df_complete.loc[filtre, ['entity']]
     filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
     filtre_group_notna.columns = ['entity', 'counts']
-    filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(10)
+    filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(50)
 
     print(filtre_group_notna)
     return filtre_group_notna
