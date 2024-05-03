@@ -144,6 +144,37 @@ def number_entity():
     print(filtre_group_notna)
     return filtre_group_notna
 
+def borne_date1_date2(dat1, dat2):
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
+    filtre2 = df_filtre2['label'].notna() 
+    df_filtre3 = df_filtre2[filtre2]
+    filtre_group_notna = df_filtre3.groupby(['date1','label'])['label'].size().reset_index(name='counts')
+
+    return filtre_group_notna
+
+
+def borne_entity(entitie):
+    filtre = df_complete['entity'].notna()
+    df_filtre = df_complete[filtre]
+    df_filtre2 = df_filtre[(df_filtre['entity'] == entitie)]
+    filtre_group_notna = df_filtre2.groupby(['entity'])['entity'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
+def born_source(source):
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    df_filtre3 = df_filtre2[(df_filtre2['source'] == source)]
+
+    filtre_group_notna = df_filtre3.groupby(['source','label'])['source'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
+
 ############################################################
 
 
@@ -411,6 +442,69 @@ def list_numbers_resume():
     list_numbers_resume_JSON = json.dumps(list_numbers_res)
 
     return list_numbers_res, list_numbers_resume_JSON
+
+
+def list_resume_claims_per_source_label():
+
+    claims_per_srcs_label = claims_per_source_label()
+    parsed_data = claims_per_srcs_label.to_dict(orient='records')
+
+    l = json.dumps(parsed_data)
+
+    return l
+
+
+def list_resume_claims_per_date_label():
+
+    claims_per_dat_label = claims_per_date_label()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
+
+
+def entity():
+
+    claims_per_dat_label = number_entity()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+ 
+    return json_data
+
+
+def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+
+    claims_per_dat_label = borne_date1_date2("2005-03-22", "2020-03-30")
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
+
+def list_resume_borne_entities(): #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+
+    claims_per_dat_label = borne_entity("#BlackLivesMatter")
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
+
+def list_resume_borne_source(source):
+
+    claims_per_dat_label = born_source(source)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
+
 
 
 def dico_numbers_resume():
