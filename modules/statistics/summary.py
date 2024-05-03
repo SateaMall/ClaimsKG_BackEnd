@@ -1,5 +1,6 @@
 import json
 
+from flask import current_app, jsonify
 import pandas
 
 from modules.dataframes.dataframe_singleton import df_complete
@@ -556,8 +557,47 @@ def json_per_entity():
 
 ### Suggestions for the searching part
 
+## Tis will return entities that has at least 3 entities prioritizing the most popular entities and the exact entity searched if it exists
 def suggestions(query):
+    try:
+        # Normalize case and filter entries
+        suggestions = df_complete[df_complete['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
+        suggestions_lower = suggestions.str.lower()
 
-    suggestions = df_complete[df_complete['entity'].str.contains(query, case=False)]  
-    matches = suggestions['entity'].drop_duplicates().tolist() 
-    return matches
+        # Count occurrences and filter
+        entity_counts = suggestions_lower.value_counts()
+
+        # Filter original DataFrame for entities that appear 3 or more times
+        frequent_entities = entity_counts[entity_counts >= 3]
+
+        # Sort entities by count (descending) and length of entity name (ascending)
+        frequent_entities_sorted = sorted(frequent_entities.items(), key=lambda x: (-x[1], len(x[0])))
+
+        # Check if the normalized query exists in the frequent entities and prioritize it
+        normalized_query = query.lower()
+        result = [entity[0] for entity in frequent_entities_sorted]
+
+        # If the query exists in the results, prioritize it
+        if normalized_query in result:
+            # Move the query to the front of the list
+            result.insert(0, result.pop(result.index(normalized_query)))
+
+        print(result)  # Debugging
+        return jsonify(result)
+
+    except Exception as e:
+        current_app.logger.error(f'Error processing request: {str(e)}')
+        return jsonify(error=str(e)), 500
+    
+
+### Searching Form treatement
+def json_entity_dates_searchs(selectedEntities,firstDate,lastDate):
+    try:
+        result=selectedEntities
+        print(result)  # Debugging
+        return jsonify(result)
+
+    except Exception as e:
+        current_app.logger.error(f'Error processing request: {str(e)}')
+        return jsonify(error=str(e)), 500
+    

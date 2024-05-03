@@ -16,6 +16,7 @@ from modules.statistics.summary import json_per_source_label_true
 from modules.statistics.summary import json_per_source_label_false
 from modules.statistics.summary import json_per_source_label_mixture
 from modules.statistics.summary import json_per_source_label_other
+from modules.statistics.summary import json_entity_dates_searchs
 from modules.dataframes.dataframe_singleton import df_complete
 
 app = Flask(__name__)
@@ -81,10 +82,17 @@ def json_number_mixture_end():
 def json_number_other_end():
     return json_number_other()
 
-@app.route('/suggestions-entity', methods=['GET'])
+@app.route('/suggestions', methods=['GET'])
 def suggestions_entity():
-    query = request.args.get('query', default='', type=str)
+    query = request.args.get('query')
     return suggestions(query)
+
+@app.route('/search', methods=['GET'])
+def search():
+    selectedEntities = request.args.get('selectedEntities')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    return json_entity_dates_searchs(selectedEntities,firstDate,lastDate)
 
 if __name__ == '__main__':
     app.run(debug=True)
