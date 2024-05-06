@@ -5,6 +5,9 @@ from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
 from modules.statistics.summary import list_resume_borne_entities
 from modules.statistics.summary import list_resume_borne_source
+from modules.statistics.summary import dico_new_data
+from modules.statistics.summary import list_resume_claims_per_topics
+from modules.statistics.summary import list_resume_borne_date1_date2_entity
 
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -29,7 +32,7 @@ def graph_per_label_date():
 
 @app.route ("/resume")
 def resume():
-    return dico_numbers_resume()
+    return dico_new_data()
 
 @app.route("/json_per_source_label")
 def json():
@@ -40,7 +43,7 @@ def json2():
     return list_resume_claims_per_date_label()
 
 @app.route("/json_per_entity")
-def json3():
+def json3():    
     return entity()
 
 @app.route("/json_born_date")
@@ -54,6 +57,14 @@ def json5():
 @app.route("/json_born_source")
 def json6():
     return list_resume_borne_source()
+
+@app.route("/json_per_topics")
+def json7():
+    return list_resume_claims_per_topics()
+
+@app.route("/json_per_entity_date1_date2")
+def json8():
+    return list_resume_borne_date1_date2_entity()
 
 if __name__ == '__main__':
     app.run(debug=True)

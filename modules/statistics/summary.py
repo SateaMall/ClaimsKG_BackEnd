@@ -3,6 +3,8 @@ import json
 import pandas
 
 from modules.dataframes.dataframe_singleton import df_complete
+from modules.dataframes.dataframe_singleton import df_other
+
 
 
 #s'occupe de retourner des données pour les graphes
@@ -90,6 +92,18 @@ def number_entity():
     return filtre_group_notna
 
 
+def newdata():
+    filtre = df_other['topics'].notna()
+    df_filtre = df_other[filtre]
+    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
+    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
+    filtre_group_notna = df_filtre.groupby(['topics'])['topics'].size().reset_index(name='counts')
+
+    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
+
+    return filtre_group_notna_sorted
+
+
 def borne_date1_date2(dat1, dat2):
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
     df_filtre = df_complete[filtre]
@@ -109,6 +123,20 @@ def borne_entity(entitie):
     
     return filtre_group_notna
 
+def borne_entity_per_date(entitie,dat1, dat2):
+    
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
+    filtre2 = df_filtre2['label'].notna() 
+    df_filtre3 = df_filtre2[filtre2]
+    filtre3 = df_filtre3['entity'].notna()
+    df_filtre4 = df_filtre3[filtre3]
+    df_filtre5 = df_filtre4[(df_filtre['entity'] == entitie)]
+    filtre_group_notna = df_filtre3.groupby(['date1', 'date2', 'entity'])['entity'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
 def born_source(source):
     filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
@@ -119,6 +147,8 @@ def born_source(source):
     filtre_group_notna = df_filtre3.groupby(['source','label'])['source'].size().reset_index(name='counts')
     
     return filtre_group_notna
+
+
 
 
 ############################################################
@@ -421,6 +451,20 @@ def entity():
     return json_data
 
 
+
+
+def list_resume_claims_per_topics():
+
+    claims_per_dat_label = newdata()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
+
+
+
 def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
 
     claims_per_dat_label = borne_date1_date2("2005-03-22", "2020-03-30")
@@ -430,10 +474,22 @@ def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume
 
     return json_data
 
+def list_resume_borne_date1_date2_entity():  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+
+    claims_per_dat_label = borne_date1_date2("2005-03-22", "2020-03-30","")
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
 
 def list_resume_borne_entities(): #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
-
-    claims_per_dat_label = borne_entity("#BlackLivesMatter")
+    param_list= []
+    param_list.append("#BlackLivesMatter")
+    param_list.append("#BringBackOurGirls")
+    param_list.append("#EndSARS")
+    claims_per_dat_label = borne_entity(param_list)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
@@ -452,7 +508,6 @@ def list_resume_borne_source(source):
 
 
 
-
 def dico_numbers_resume():
     total = claims_total()
     list = [
@@ -462,6 +517,16 @@ def dico_numbers_resume():
          "Numbers of authors ": str(numbers_of_author()),
          "Numbers of entities ": str(numbers_of_entities()),
          "Numbers of keywords ": str(numbers_keywords())}]
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
+
+
+def dico_new_data():
+    total = newdata()
+    list = [
+        {"Numbers of claims ": str(total)}]
 
     list_json = json.dumps(list)
     # print(list_json)

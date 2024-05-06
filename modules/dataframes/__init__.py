@@ -98,8 +98,11 @@ def generate_per_label_dataframe():
     return 'ok dataframe per label generation'
 
 
+
+
 def generate_global_dataframe():
     prefixes = "PREFIX schema: <http://schema.org/> PREFIX nif: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#>"
+    prefixe = "PREFIX itsrdf:https://www.w3.org/2005/11/its/rdf PREFIX schema:http://schema.org/ PREFIX dbr:http://dbpedia.org/resource/ "
     quent1 = SparQLOffsetFetcher(sparql, 10000,
                                  prefixes,
                                  """
@@ -117,6 +120,8 @@ def generate_global_dataframe():
                 ?id2 schema:mentions ?linkent1.}
                 ?linkent2 nif:isString ?entity.
                                  """, "distinct ?id1 ?id2 ?entity")
+    
+
 
     #quauth = SparQLOffsetFetcher(sparql, 10000, prefixes,
     #                             """
@@ -132,6 +137,8 @@ def generate_global_dataframe():
     #                ?id2 schema:keywords ?keywords.
     #                             """, "distinct ?id2 ?keywords")
 
+    
+
     qulabel = SparQLOffsetFetcher(sparql, 10000, prefixes,
                                   """
              ?id1 a schema:ClaimReview.
@@ -146,6 +153,14 @@ def generate_global_dataframe():
                     ?id1 schema:itemReviewed ?id2.
                     ?id1 schema:datePublished ?date1.
                                      """, "?id1 ?id2 ?date1")
+     
+    qulang = SparQLOffsetFetcher(sparql, 10000, prefixes,
+                                """
+                    ?id1 a schema:ClaimReview;
+                    schema:author ?author;
+                    schema:headline ?headline.
+                    Bind(lang(?headline) AS ?headlineLang)
+                                """, "distinct ?id1 ?headlineLang" )
 
     #qudates_cw = SparQLOffsetFetcher(sparql, 10000, prefixes,
     #                                 """
@@ -162,6 +177,7 @@ def generate_global_dataframe():
                                     """, "distinct ?id1 ?source")
     df_entities = get_sparql_dataframe(quent1)
     df_entities2 = get_sparql_dataframe(quent2)
+    df_langue = get_sparql_dataframe(qulang)
     #df_author = get_sparql_dataframe(quauth)
     #df_keywords = get_sparql_dataframe(qwords)
     df_label = get_sparql_dataframe(qulabel)
@@ -188,11 +204,13 @@ def generate_global_dataframe():
 
 
     df_entites_label = pandas.merge(df_entities_complete, df_label, on=['id1'], how='outer')
-    df_entites_label_datecr = pandas.merge(df_entites_label, df_dates_cr, on=['id1','id2'], how='outer')
+    df_entites_label_langue = pandas.merge(df_entites_label, df_langue, on=['id1'], how='outer')
+    df_entites_label_datecr = pandas.merge(df_entites_label_langue, df_dates_cr, on=['id1','id2'], how='outer')
     df_entites_label_datescr_sources = pandas.merge(df_entites_label_datecr, df_sources, on=['id1'], how='outer')
 
 
     df_complete = df_entites_label_datescr_sources
+
 
     # dataframe to csv
     df_complete.to_csv('modules/df_complete.csv', quoting=csv.QUOTE_NONNUMERIC, index=False)
