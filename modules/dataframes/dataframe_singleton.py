@@ -4,6 +4,10 @@ import pandas
 pandas.set_option('display.max_colwidth', None)
 pandas.set_option('display.max_columns', None)
 base_path = Path(__file__).parent.parent
+
+file_path_tsv = (base_path / "website_topic_classification_normalisedratings_prediction.tsv").resolve()
+df_tsv = pandas.read_csv(file_path_tsv, sep="\t", header=0)
+
 file_path = (base_path / "df_complete.csv").resolve()
 df_complete = pandas.read_csv(file_path, dtype={"id1": str, "id2": str, "entity": str}, header=0)
 

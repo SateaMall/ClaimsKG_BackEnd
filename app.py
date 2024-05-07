@@ -1,4 +1,5 @@
 from flask import Flask, request
+from markupsafe import Markup
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
 from modules.statistics.summary import json_per_date1_label
@@ -17,7 +18,7 @@ from modules.statistics.summary import json_per_source_label_false
 from modules.statistics.summary import json_per_source_label_mixture
 from modules.statistics.summary import json_per_source_label_other
 from modules.statistics.summary import json_entity_dates_searchs
-from modules.dataframes.dataframe_singleton import df_complete
+from modules.dataframes.dataframe_singleton import df_complete, df_tsv
 from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
 from modules.statistics.summary import list_resume_borne_entities
@@ -122,6 +123,15 @@ def json5_borned(date1,date2):
 @app.route("/json_born_source")
 def json6_borned():
     return list_resume_borne_source()
+
+
+
+## Test tsv:
+@app.route("/testtsv")
+def testing():
+    df_html = df_tsv.head().to_html(index=False)  # Convert to HTML table without the index column
+    return f"<h1>First Five Rows of the TSV Data</h1>{Markup(df_html)}"
+
 
 if __name__ == '__main__':
     app.run(debug=True)
