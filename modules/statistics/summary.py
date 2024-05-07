@@ -104,6 +104,17 @@ def newdata():
     return filtre_group_notna_sorted
 
 
+def langue_per_label():
+
+    filtre = df_complete['headlineLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['label'].notna()
+    df_filtre2 = df_filtre[filtre2] 
+    filtre_group_notna = df_filtre2.groupby(['headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
+
 def borne_date1_date2(dat1, dat2):
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
     df_filtre = df_complete[filtre]
@@ -463,6 +474,14 @@ def list_resume_claims_per_topics():
     return json_data
 
 
+def list_resume_claims_per_langues():
+
+    claims_per_langue_label = langue_per_label()
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
 
 
 def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
@@ -473,6 +492,7 @@ def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume
     json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
 
     return json_data
+
 
 def list_resume_borne_date1_date2_entity():  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
 
