@@ -52,13 +52,13 @@ def json():
     return list_resume_claims_per_source_label()
 
 @app.route("/json_per_date1_label/<date1>/<date2>")
-def json2(date1,date2):
+def json_filter_date(date1,date2):
     return json_per_date1_label(date1,date2)
 
 @app.route("/json_per_entity")
 def json3():
     return json_per_entity()
-g
+
 @app.route("/json_per_true")
 def json4():
     return json_per_source_label_true()
@@ -102,24 +102,25 @@ def search():
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     return json_entity_dates_searchs(selectedEntities,firstDate,lastDate)
+    
 @app.route("/json_per_date1_label")
 def json2():
     return list_resume_claims_per_date_label()
 
 @app.route("/json_per_entity")
-def json3():
+def json3_entity():
     return entity()
 
-@app.route("/json_born_date")
-def json4():
-    return list_resume_borne_date1_date2()
+@app.route("/json_born_date/<date1>/<date2>")
+def json4_borned(date1,date2):
+    return list_resume_borne_date1_date2(date1,date2)
 
-@app.route("/json_born_entity")
-def json5():
-    return list_resume_borne_entities()
+@app.route("/json_born_entity/<date1>/<date2>")
+def json5_borned(date1,date2):
+    return list_resume_borne_entities(date1,date2)
 
 @app.route("/json_born_source")
-def json6():
+def json6_borned():
     return list_resume_borne_source()
 
 if __name__ == '__main__':

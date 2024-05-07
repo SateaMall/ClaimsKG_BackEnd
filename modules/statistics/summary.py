@@ -155,13 +155,13 @@ def borne_date1_date2(dat1, dat2):
     return filtre_group_notna
 
 
-def borne_entity(entitie):
+def borne_entity(dat1, dat2):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
-    df_filtre2 = df_filtre[(df_filtre['entity'] == entitie)]
+    df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
     filtre_group_notna = df_filtre2.groupby(['entity'])['entity'].size().reset_index(name='counts')
     
-    return filtre_group_notna
+    return filtre_group_notna.sort_values('counts', ascending=False).head(50)
 
 def born_source(source):
     filtre = df_complete['source'].notna()
@@ -475,9 +475,9 @@ def entity():
     return json_data
 
 
-def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+def list_resume_borne_date1_date2(date1,date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
 
-    claims_per_dat_label = borne_date1_date2("2005-03-22", "2020-03-30")
+    claims_per_dat_label = borne_date1_date2(date1,date2)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
@@ -485,9 +485,9 @@ def list_resume_borne_date1_date2():  #faire comme pour la fonction "list_resume
     return json_data
 
 
-def list_resume_borne_entities(): #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+def list_resume_borne_entities(date1,date2): #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
 
-    claims_per_dat_label = borne_entity("#BlackLivesMatter")
+    claims_per_dat_label = borne_entity(date1,date2)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
@@ -624,9 +624,9 @@ def json_per_date1_label(date1,date2):
 
     for i in range(data_length):
         list_claims_gerer.append( {
-        "Date1": str(list_claims['date1'][i]),
-        "Label": str(list_claims['label'][i]),
-        "Numbers of claims": str(list_claims['counts'][i])
+        "date1": str(list_claims['date1'][i]),
+        "label": str(list_claims['label'][i]),
+        "counts": str(list_claims['counts'][i])
         })
 
     list_json = json.dumps(list_claims_gerer)
