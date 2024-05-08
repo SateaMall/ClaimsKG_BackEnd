@@ -594,11 +594,11 @@ def borne_date1_date2(dat1, dat2):
     return filtre_group_notna
 
 
-def borne_entity(dat1, dat2, entity):
+def borne_entity(dat1, dat2):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
-    df_filtre2 = df_filtre[(df_filtre['entity'] == entity)]
-    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    #df_filtre2 = df_filtre[(df_filtre['entity'] == entity)]
+    df_filtre3 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
     filtre_group_notna = df_filtre3.groupby(['entity'])['entity'].size().reset_index(name='counts')
     
     return filtre_group_notna.sort_values('counts', ascending=False).head(50)
@@ -627,6 +627,41 @@ def born_langue_per_label(dat1,dat2):
     final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
+
+def born_per_source_label(dat1, dat2):
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    filtre_group_notna = df_filtre3.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
+
+    # Perform another groupby on the result
+    final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+def born_per_topics_date(date1, date2):
+    filtre = df_other['topics'].notna()
+    df_filtre = df_other[filtre]
+    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
+    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
+    df_filtre3 = df_filtre[(df_filtre['creativeWork_datePublished'] >= date1) & (df_filtre['creativeWork_datePublished'] <= date2)]
+    filtre_group_notna = df_filtre3.groupby(['topics'])['topics'].size().reset_index(name='counts')
+    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
+
+    return filtre_group_notna_sorted
+
+def born_per_date_label(date1, date2):
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    df_filtre3 = df_filtre2[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+
+    filtre_group_notna = df_filtre3.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+
+    return filtre_group_notna
 
 
 ######################################################################################################################################################
@@ -826,9 +861,9 @@ def list_resume_claims_per_langues():
 
     return json_data
 
-def list_resume_borne_date1_date2_entity(date1, date2, entity):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+def list_resume_borne_date1_date2_entity(date1, date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
 
-    claims_per_dat_label = borne_entity(date1, date2, entity)
+    claims_per_dat_label = borne_entity(date1, date2)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  
@@ -842,6 +877,35 @@ def list_resume_born_claims_per_langues(dat1,dat2):
     parsed_data = claims_per_langue_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)
+
+    return json_data
+
+
+def list_resume_born_source_label(dat1,dat2):
+
+    claims_per_langue_label = born_per_source_label(dat1,dat2)
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)
+
+    return json_data
+
+
+def list_resume_born_topics(dat1, dat2):
+    claims_per_langue_label = born_per_topics_date(dat1,dat2)
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)
+
+    return json_data
+
+
+def list_resume_born_per_date_label(dat1, dat2):
+
+    claims_per_dat_label = born_per_date_label(dat1, dat2)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
 
     return json_data
 

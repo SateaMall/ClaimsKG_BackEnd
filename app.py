@@ -29,6 +29,9 @@ from modules.statistics.summary import list_resume_claims_per_topics
 from modules.statistics.summary import list_resume_borne_date1_date2_entity
 from modules.statistics.summary import list_resume_claims_per_langues
 from modules.statistics.summary import entity2
+from modules.statistics.summary import list_resume_born_topics
+
+from modules.statistics.summary import list_resume_born_source_label
 
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -126,14 +129,21 @@ def json6_borned_source(source):
 def json_topics():
     return list_resume_claims_per_topics()
 
-@app.route("/json_per_entity_date1_date2/<date1>/<date2>/<entity>")
-def json_born_entity_date(date1, date2, entity):
-    return list_resume_borne_date1_date2_entity(date1, date2, entity)
-
+@app.route("/json_per_entity_date1_date2/<date1>/<date2>")
+def json_born_entity_date(date1, date2):
+    return list_resume_borne_date1_date2_entity(date1, date2)
 
 @app.route("/json_per_langue_label")
 def json_langue_label():
     return list_resume_claims_per_langues()
+
+@app.route("/json_born_per_source_label/<date1>/<date2>")
+def born_per_source_label(date1, date2):
+    return list_resume_born_source_label(date1, date2)
+
+@app.route("/json_born_per_topics/<date1>/<date2>")
+def born_per_topics(date1, date2):
+    return list_resume_born_topics(date1, date2)
 
 
 ###########################################################################
