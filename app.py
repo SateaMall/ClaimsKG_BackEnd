@@ -8,21 +8,28 @@ from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
 from modules.statistics.summary import json_per_source_label
 from modules.statistics.summary import json_per_entity
+
 from modules.statistics.summary import json_number_false
 from modules.statistics.summary import json_number_true
 from modules.statistics.summary import json_number_mixture
 from modules.statistics.summary import json_number_other
+
 from modules.statistics.summary import moy_ent_per_claims_for_df 
+
 from modules.statistics.summary import json_per_source_label_true
 from modules.statistics.summary import json_per_source_label_false
 from modules.statistics.summary import json_per_source_label_mixture
 from modules.statistics.summary import json_per_source_label_other
+
 from modules.statistics.summary import json_entity_dates_searchs
-from modules.dataframes.dataframe_singleton import df_complete, df_tsv
 from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
 from modules.statistics.summary import list_resume_borne_entities
 from modules.statistics.summary import list_resume_borne_source
+from modules.statistics.summary import list_resume_claims_per_topics
+from modules.statistics.summary import list_resume_borne_date1_date2_entity
+from modules.statistics.summary import list_resume_claims_per_langues
+from modules.statistics.summary import entity2
 
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -56,10 +63,6 @@ def json():
 def json_filter_date(date1,date2):
     return json_per_date1_label(date1,date2)
 
-@app.route("/json_per_entity")
-def json3():
-    return json_per_entity()
-
 @app.route("/json_per_true")
 def json4():
     return json_per_source_label_true()
@@ -92,6 +95,7 @@ def json_number_mixture_end():
 def json_number_other_end():
     return json_number_other()
 
+
 @app.route('/suggestions', methods=['GET'])
 def suggestions_entity():
     query = request.args.get('query')
@@ -112,6 +116,10 @@ def json2():
 def json3_entity():
     return entity()
 
+@app.route("/entity2")
+def entity():
+    return entity2()
+
 @app.route("/json_born_date/<date1>/<date2>")
 def json4_borned(date1,date2):
     return list_resume_borne_date1_date2(date1,date2)
@@ -120,18 +128,22 @@ def json4_borned(date1,date2):
 def json5_borned(date1,date2):
     return list_resume_borne_entities(date1,date2)
 
-@app.route("/json_born_source")
-def json6_borned():
-    return list_resume_borne_source()
+@app.route("/json_born_source/<source>")
+def json6_borned(source):
+    return list_resume_borne_source(source)
+
+@app.route("/json_per_topics")
+def json10():
+    return list_resume_claims_per_topics()
+
+@app.route("/json_per_entity_date1_date2/<date1>/<date2>/<entity>")
+def json8(date1, date2, entity):
+    return list_resume_borne_date1_date2_entity(date1, date2, entity)
 
 
-#julien aime le sex
-
-## Test tsv:
-@app.route("/testtsv")
-def testing():
-    df_html = df_tsv.head().to_html(index=False)  # Convert to HTML table without the index column
-    return f"<h1>First Five Rows of the TSV Data</h1>{Markup(df_html)}"
+@app.route("/json_per_langue_label")
+def json9():
+    return list_resume_claims_per_langues()
 
 
 if __name__ == '__main__':

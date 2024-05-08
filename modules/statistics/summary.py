@@ -4,10 +4,13 @@ from flask import current_app, jsonify
 import pandas
 
 from modules.dataframes.dataframe_singleton import df_complete
+from modules.dataframes.dataframe_singleton import df_other
 from modules.dataframes.dataframe_singleton import df_Source_labelFALSE
 from modules.dataframes.dataframe_singleton import df_Source_labelMIXTURE
 from modules.dataframes.dataframe_singleton import df_Source_labelOTHER
 from modules.dataframes.dataframe_singleton import df_Source_labelTRUE
+
+
 
 #s'occupe de retourner des données pour les graphes
 
@@ -88,11 +91,38 @@ def claims_per_date_label():
 
     return filtre_group_notna
 
+
 def number_entity():
+    print('salope')
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre] 
     filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
     return filtre_group_notna
+
+
+def langue_per_label():
+
+    filtre = df_complete['headlineLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['label'].notna()
+    df_filtre2 = df_filtre[filtre2] 
+    #filtre_group_notna = df_filtre2.groupby(['id1'])['id1']
+    filtre_group_notna = df_filtre2.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+def newdata():
+    filtre = df_other['topics'].notna()
+    df_filtre = df_other[filtre]
+    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
+    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
+    filtre_group_notna = df_filtre.groupby(['topics'])['topics'].size().reset_index(name='counts')
+
+    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
+
+    return filtre_group_notna_sorted
+
 
 def claims_per_source_label_true():
     grouped_df = df_Source_labelTRUE.groupby(['source', 'label']).size().reset_index(name='counts')
@@ -134,7 +164,9 @@ def number_label_other():
     print(counts)
     return counts
 
-def number_entity():
+
+def number_entity2():
+    print("Petite pute")
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete.loc[filtre, ['entity']]
     filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
@@ -155,13 +187,14 @@ def borne_date1_date2(dat1, dat2):
     return filtre_group_notna
 
 
-def borne_entity(dat1, dat2):
+def borne_entity(dat1, dat2, entity):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
     df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
     filtre_group_notna = df_filtre2.groupby(['entity'])['entity'].size().reset_index(name='counts')
     
     return filtre_group_notna.sort_values('counts', ascending=False).head(50)
+
 
 def born_source(source):
     filtre = df_complete['source'].notna()
@@ -173,6 +206,19 @@ def born_source(source):
     filtre_group_notna = df_filtre3.groupby(['source','label'])['source'].size().reset_index(name='counts')
     
     return filtre_group_notna
+
+
+def born_langue_per_label(dat1,dat2):
+
+    filtre = df_complete['headlineLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['label'].notna()
+    df_filtre2 = df_filtre[filtre2] 
+    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    filtre_group_notna = df_filtre3.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
 
 
 ############################################################
@@ -459,7 +505,7 @@ def list_resume_claims_per_date_label():
     claims_per_dat_label = claims_per_date_label()
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+    json_data = json.dumps(parsed_data) 
 
     return json_data
 
@@ -470,7 +516,16 @@ def entity():
     claims_per_dat_label = number_entity()
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+    json_data = json.dumps(parsed_data)  
+ 
+    return json_data
+
+def entity2():
+
+    claims_per_dat_label = number_entity2()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
  
     return json_data
 
@@ -490,7 +545,7 @@ def list_resume_borne_entities(date1,date2): #faire comme pour la fonction "list
     claims_per_dat_label = borne_entity(date1,date2)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+    json_data = json.dumps(parsed_data)  
 
     return json_data
 
@@ -500,7 +555,46 @@ def list_resume_borne_source(source):
     claims_per_dat_label = born_source(source)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+    json_data = json.dumps(parsed_data)  
+
+    return json_data
+
+
+def list_resume_claims_per_topics():
+
+    claims_per_dat_label = newdata()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+
+    return json_data
+
+
+def list_resume_claims_per_langues():
+
+    claims_per_langue_label = langue_per_label()
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+
+    return json_data
+
+def list_resume_borne_date1_date2_entity(date1, date2, entity):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+
+    claims_per_dat_label = borne_date1_date2(date1, date2, entity)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  
+
+    return json_data
+
+
+def list_resume_born_claims_per_langues(dat1,dat2):
+
+    claims_per_langue_label = born_langue_per_label(dat1,dat2)
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)
 
     return json_data
 
@@ -521,7 +615,8 @@ def dico_numbers_resume():
     list_json = json.dumps(list)
     # print(list_json)
     return list_json
-    
+
+
 def json_per_source_label_true():
 
     grouped_label = claims_per_source_label_true()
@@ -597,6 +692,8 @@ def json_number_other():
     return ( {
     "counts": str(len(number_label_other()))
     })
+
+ 
 
 def json_per_source_label():
     claims_per_source_label_fetch = claims_per_source_label()
