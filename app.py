@@ -2,7 +2,7 @@ from flask import Flask, request
 from markupsafe import Markup
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import json_per_date1_label
+from modules.statistics.summary import extract_topics, json_entity_topic_dates_searchs, json_per_date1_label, json_topic_dates_searchs
 from modules.statistics.summary import json_per_source_label, suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -142,23 +142,41 @@ def json_langue_label():
 def resume():
     return dico_numbers_resume()
 
+### Extract topics 
+@app.route("/topics")
+def topics():
+    return extract_topics()
 
+### get suggestions for entity search auto completion
 @app.route('/suggestions', methods=['GET'])
 def suggestions_entity():
     query = request.args.get('query')
     return suggestions(query)
 
-@app.route('/search', methods=['GET'])
-def search():
-    selectedEntities = request.args.get('selectedEntities')
+### Infos for the search form 
+@app.route('/search-entity-topic', methods=['GET'])
+def search_entity_topic():
+    selectedEntities = request.args.getlist('selectedEntities')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    topic = request.args.get('topic')
+    return json_entity_topic_dates_searchs(selectedEntities,firstDate,lastDate,topic)
+
+### Infos for the search form 
+@app.route('/search-entity', methods=['GET'])
+def search_entity():
+    selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     return json_entity_dates_searchs(selectedEntities,firstDate,lastDate)
-    
 
-
-
-
+### Infos for the search form 
+@app.route('/search-topic', methods=['GET'])
+def search_topic():
+    topic = request.args.get('topic')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    return json_topic_dates_searchs(firstDate, lastDate, topic)
 
 if __name__ == '__main__':
     app.run(debug=True)
