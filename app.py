@@ -24,7 +24,6 @@ from modules.statistics.summary import json_per_source_label_other
 from modules.statistics.summary import json_entity_dates_searchs
 from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
-from modules.statistics.summary import list_resume_borne_entities
 from modules.statistics.summary import list_resume_borne_source
 from modules.statistics.summary import list_resume_claims_per_topics
 from modules.statistics.summary import list_resume_borne_date1_date2_entity
@@ -39,6 +38,8 @@ from modules.statistics.summary import entity
 app = Flask(__name__)
 CORS(app)
 
+############################Telecharger.csv###############################
+
 @app.route ("/update_label_df")
 def update_label_df():
     return generate_per_label_dataframe()
@@ -47,21 +48,13 @@ def update_label_df():
 def update_global_df():
     return generate_global_dataframe()
 
+##########################################################################
+
 @app.route ("/graph/perlabeldate")
 def graph_per_label_date():
     return 5
 
-@app.route ("/resume")
-def resume():
-    return dico_numbers_resume()
-
-@app.route("/json_per_source_label")
-def json():
-    return list_resume_claims_per_source_label()
-
-@app.route("/json_per_date1_label/<date1>/<date2>")
-def json_filter_date(date1,date2):
-    return json_per_date1_label(date1,date2)
+################################FONCTION SUMMARY############################
 
 @app.route("/json_per_true")
 def json4():
@@ -95,6 +88,60 @@ def json_number_mixture_end():
 def json_number_other_end():
     return json_number_other()
 
+###########################################################################
+
+
+
+##################################FONCTION GRAPHE##########################
+
+@app.route("/json_per_source_label")
+def json_per_source_label():
+    return list_resume_claims_per_source_label()
+
+@app.route("/json_per_date1_label/<date1>/<date2>")
+def json_filter_date(date1,date2):
+    return json_per_date1_label(date1,date2)
+
+@app.route("/json_per_date1_label")
+def json_per_date1_date2():
+    return list_resume_claims_per_date_label()
+
+@app.route("/json_per_entity")
+def json_entity():
+    return entity()
+
+@app.route("/entity2")
+def entity():
+    return entity2()
+
+@app.route("/json_born_date/<date1>/<date2>")
+def json_borned_bydate(date1,date2):
+    return list_resume_borne_date1_date2(date1,date2)
+
+@app.route("/json_born_source/<source>")
+def json6_borned_source(source):
+    return list_resume_borne_source(source)
+
+@app.route("/json_per_topics")
+def json_topics():
+    return list_resume_claims_per_topics()
+
+@app.route("/json_per_entity_date1_date2/<date1>/<date2>/<entity>")
+def json_born_entity_date(date1, date2, entity):
+    return list_resume_borne_date1_date2_entity(date1, date2, entity)
+
+
+@app.route("/json_per_langue_label")
+def json_langue_label():
+    return list_resume_claims_per_langues()
+
+
+###########################################################################
+
+@app.route ("/resume")
+def resume():
+    return dico_numbers_resume()
+
 
 @app.route('/suggestions', methods=['GET'])
 def suggestions_entity():
@@ -108,42 +155,9 @@ def search():
     lastDate = request.args.get('lastDate')
     return json_entity_dates_searchs(selectedEntities,firstDate,lastDate)
     
-@app.route("/json_per_date1_label")
-def json2():
-    return list_resume_claims_per_date_label()
-
-@app.route("/json_per_entity")
-def json3_entity():
-    return entity()
-
-@app.route("/entity2")
-def entity():
-    return entity2()
-
-@app.route("/json_born_date/<date1>/<date2>")
-def json4_borned(date1,date2):
-    return list_resume_borne_date1_date2(date1,date2)
-
-@app.route("/json_born_entity/<date1>/<date2>")
-def json5_borned(date1,date2):
-    return list_resume_borne_entities(date1,date2)
-
-@app.route("/json_born_source/<source>")
-def json6_borned(source):
-    return list_resume_borne_source(source)
-
-@app.route("/json_per_topics")
-def json10():
-    return list_resume_claims_per_topics()
-
-@app.route("/json_per_entity_date1_date2/<date1>/<date2>/<entity>")
-def json8(date1, date2, entity):
-    return list_resume_borne_date1_date2_entity(date1, date2, entity)
 
 
-@app.route("/json_per_langue_label")
-def json9():
-    return list_resume_claims_per_langues()
+
 
 
 if __name__ == '__main__':
