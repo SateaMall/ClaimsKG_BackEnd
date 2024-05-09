@@ -505,8 +505,11 @@ def claims_per_source_label_other():
     print(grouped_df)
     return grouped_df
 
-def number_label_false():
-    counts = df_Source_labelFALSE.groupby(['id1']).size().reset_index(name='counts')['counts']
+def number_label_false(dat1, dat2):
+    df_filtre = df_Source_labelFALSE
+    if dat1 is not None: 
+        df_filtre = df_Source_labelFALSE[(df_Source_labelFALSE['date1'] >= dat1) & (df_Source_labelFALSE['date1'] <= dat2)]
+    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
     print(counts)
     return counts
 
@@ -738,10 +741,10 @@ def json_per_source_label_other():
 
     return json.dumps(json_grouped)
 
-def json_number_false():
-
+def json_number_false(date1, date2):
+    taille = len(number_label_false(date1, date2))
     return ( {
-    "counts": str(len(number_label_false()))
+    "counts": str(taille)
     })
 
 def json_number_true():

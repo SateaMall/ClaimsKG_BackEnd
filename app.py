@@ -59,25 +59,27 @@ def graph_per_label_date():
 
 ################################FONCTION SUMMARY############################
 
-@app.route("/json_per_true")
-def json4():
-    return json_per_source_label_true()
+#### a enlever
+# @app.route("/json_per_true")
+# def json4():
+#     return json_per_source_label_true()
 
-@app.route("/json_per_false")
-def json5():
-    return json_per_source_label_false()
+# @app.route("/json_per_false")
+# def json5():
+#     return json_per_source_label_false()
 
-@app.route("/json_per_mixture")
-def json6():
-    return json_per_source_label_mixture()
+# @app.route("/json_per_mixture")
+# def json6():
+#     return json_per_source_label_mixture()
 
-@app.route("/json_per_other")
-def json7():
-    return json_per_source_label_other()
+# @app.route("/json_per_other")
+# def json7():
+#     return json_per_source_label_other()
 
 @app.route("/number_false")
-def json_number_false_end():
-    return json_number_false()
+@app.route("/number_false/<date1>/<date2>")
+def json_number_false_end(date1=None, date2=None):
+    return json_number_false(date1, date2)
 
 @app.route("/number_true")
 def json_number_true_end():
@@ -107,7 +109,7 @@ def json_per_source_label():
 def json_filter_date(date1=None, date2=None, granularite=None):
     return list_resume_born_per_date_label(date1, date2, granularite)
 
-@app.route("/json_per_date1_label")
+@app.route("/json_per_date1_label")  ####a enlever 
 def json_per_date1_date2():
     return list_resume_claims_per_date_label()
 
@@ -138,6 +140,7 @@ def json_born_entity_date(date1, date2):
 @app.route("/json_per_langue_label")
 def json_langue_label():
     return list_resume_claims_per_langues()
+
 
 @app.route("/json_born_per_source_label/<date1>/<date2>")
 def born_per_source_label(date1, date2):
