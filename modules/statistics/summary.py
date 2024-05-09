@@ -604,17 +604,20 @@ def born_per_date_label(date1, date2, granularite):
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
-    df_filtre2 = df_filtre[filtre2]
-    df_filtre3 = df_filtre2[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+    df_filtre3 = df_filtre[filtre2]
+    if date1 is not None :
+        df_filtre3 = df_filtre3[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
     if(granularite=="annee"):
         df_filtre3['date1'] = df_filtre3['date1'].str[:4]
         print(df_filtre3['date1'].str[:4])
     if(granularite == "mois") : 
         df_filtre3['date1'] = df_filtre3['date1'].str[:7] 
     
-    filtre_group_notna = df_filtre3.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre3.groupby(['id1','date1','label'])['date1'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['date1', 'label'])['counts'].size().reset_index(name='counts')
 
-    return filtre_group_notna
+
+    return final_grouped
 
 
 ######################################################################################################################################################
