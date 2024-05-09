@@ -374,23 +374,23 @@ def json_per_source_label():
     # print(list_json)
     return list_json
 
-def json_per_date1_label(date1,date2):
-    print(date1)
-    list_claims = claims_per_date_label()
-    data_length= len(list_claims)
-    list_claims_gerer = []
+# def json_per_date1_label(date1,date2):
+#     print(date1)
+#     list_claims = claims_per_date_label()
+#     data_length= len(list_claims)
+#     list_claims_gerer = []
 
 
-    for i in range(data_length):
-        list_claims_gerer.append( {
-        "date1": str(list_claims['date1'][i]),
-        "label": str(list_claims['label'][i]),
-        "counts": str(list_claims['counts'][i])
-        })
+#     for i in range(data_length):
+#         list_claims_gerer.append( {
+#         "date1": str(list_claims['date1'][i]),
+#         "label": str(list_claims['label'][i]),
+#         "counts": str(list_claims['counts'][i])
+#         })
 
-    list_json = json.dumps(list_claims_gerer)
-    # print(list_json)
-    return list_json
+#     list_json = json.dumps(list_claims_gerer)
+#     # print(list_json)
+#     return list_json
 
 def json_per_entity():
     number_entity_fetch = number_entity()
@@ -600,14 +600,19 @@ def born_per_topics_date(date1, date2):
 
     return filtre_group_notna_sorted
 
-def born_per_date_label(date1, date2):
+def born_per_date_label(date1, date2, granularite):
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
     df_filtre3 = df_filtre2[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-
-    filtre_group_notna = df_filtre3.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+    if(granularite=="annee"):
+        df_filtre4 = df_filtre3[df_filtre3['date1'].str[:4]]
+        print(df_filtre3['date1'].str[:4])
+    else : 
+        df_filtre4 = df_filtre3[df_filtre3['date1'].str[:4]]
+    
+    filtre_group_notna = df_filtre4.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
 
     return filtre_group_notna
 
@@ -848,9 +853,9 @@ def list_resume_born_topics(dat1, dat2):
     return json_data
 
 
-def list_resume_born_per_date_label(dat1, dat2):
+def list_resume_born_per_date_label(dat1, dat2, granularite):
 
-    claims_per_dat_label = born_per_date_label(dat1, dat2)
+    claims_per_dat_label = born_per_date_label(dat1, dat2, granularite)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data) 

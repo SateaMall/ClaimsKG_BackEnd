@@ -2,7 +2,7 @@ from flask import Flask, request
 from markupsafe import Markup
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import extract_topics, json_entity_topic_dates_searchs, json_per_date1_label, json_topic_dates_searchs
+from modules.statistics.summary import extract_topics, json_entity_topic_dates_searchs, json_topic_dates_searchs
 from modules.statistics.summary import json_per_source_label, suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -20,7 +20,7 @@ from modules.statistics.summary import json_per_source_label_true
 from modules.statistics.summary import json_per_source_label_false
 from modules.statistics.summary import json_per_source_label_mixture
 from modules.statistics.summary import json_per_source_label_other
-
+from modules.statistics.summary import list_resume_born_per_date_label
 from modules.statistics.summary import json_entity_dates_searchs
 from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
@@ -101,9 +101,9 @@ def json_number_other_end():
 def json_per_source_label():
     return list_resume_claims_per_source_label()
 
-@app.route("/json_per_date1_label/<date1>/<date2>")
-def json_filter_date(date1,date2):
-    return json_per_date1_label(date1,date2)
+@app.route("/json_per_date1_label/<date1>/<date2>/<granularite>")
+def json_filter_date(date1, date2, granularite):
+    return list_resume_born_per_date_label(date1, date2, granularite)
 
 @app.route("/json_per_date1_label")
 def json_per_date1_date2():
@@ -117,7 +117,7 @@ def json_entity():
 def entity():
     return entity2()
 
-@app.route("/json_born_date/<date1>/<date2>")
+@app.route("/json_born_date/<date1>/<date2>")  #####regarder ca
 def json_borned_bydate(date1,date2):
     return list_resume_borne_date1_date2(date1,date2)
 
