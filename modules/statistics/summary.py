@@ -607,12 +607,12 @@ def born_per_date_label(date1, date2, granularite):
     df_filtre2 = df_filtre[filtre2]
     df_filtre3 = df_filtre2[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
     if(granularite=="annee"):
-        df_filtre4 = df_filtre3[df_filtre3['date1'].str[:4]]
+        df_filtre3['date1'] = df_filtre3['date1'].str[:4]
         print(df_filtre3['date1'].str[:4])
-    else : 
-        df_filtre4 = df_filtre3[df_filtre3['date1'].str[:4]]
+    if(granularite == "mois") : 
+        df_filtre3['date1'] = df_filtre3['date1'].str[:7] 
     
-    filtre_group_notna = df_filtre4.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre3.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
 
     return filtre_group_notna
 

@@ -101,8 +101,10 @@ def json_number_other_end():
 def json_per_source_label():
     return list_resume_claims_per_source_label()
 
+@app.route("/json_per_date1_label")
+@app.route("/json_per_date1_label/<date1>/<date2>")
 @app.route("/json_per_date1_label/<date1>/<date2>/<granularite>")
-def json_filter_date(date1, date2, granularite):
+def json_filter_date(date1=None, date2=None, granularite=None):
     return list_resume_born_per_date_label(date1, date2, granularite)
 
 @app.route("/json_per_date1_label")
