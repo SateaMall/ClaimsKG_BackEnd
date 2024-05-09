@@ -4,10 +4,13 @@ from flask import current_app, jsonify
 import pandas
 
 from modules.dataframes.dataframe_singleton import df_complete
+from modules.dataframes.dataframe_singleton import df_other
 from modules.dataframes.dataframe_singleton import df_Source_labelFALSE
 from modules.dataframes.dataframe_singleton import df_Source_labelMIXTURE
 from modules.dataframes.dataframe_singleton import df_Source_labelOTHER
 from modules.dataframes.dataframe_singleton import df_Source_labelTRUE
+
+
 
 #s'occupe de retourner des données pour les graphes
 
@@ -65,117 +68,6 @@ def avg_ent_per_claims():
     return moy, moy_all
 
 
-#######################################Nous
-
-def claims_per_source_label():
-    filtre = df_complete['source'].notna()
-    df_filtre = df_complete[filtre]
-    filtre2 = df_filtre['label'].notna() 
-    df_filtre2 = df_filtre[filtre2]
-    filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
-
-    # Perform another groupby on the result
-    final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
-
-    return final_grouped
-
-def claims_per_date_label():
-    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
-    df_filtre = df_complete[filtre]
-    filtre2 = df_filtre['label'].notna() 
-    df_filtre2 = df_filtre[filtre2]
-    filtre_group_notna = df_filtre2.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
-
-    return filtre_group_notna
-
-def number_entity():
-    filtre = df_complete['entity'].notna()
-    df_filtre = df_complete[filtre] 
-    filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
-    return filtre_group_notna
-
-def claims_per_source_label_true():
-    grouped_df = df_Source_labelTRUE.groupby(['source', 'label']).size().reset_index(name='counts')
-    print(grouped_df)
-    return grouped_df
-
-def claims_per_source_label_false():
-    grouped_df = df_Source_labelFALSE.groupby(['source', 'label']).size().reset_index(name='counts')
-    print(grouped_df)
-    return grouped_df
-
-def claims_per_source_label_mixture():
-    grouped_df = df_Source_labelMIXTURE.groupby(['source', 'label']).size().reset_index(name='counts')
-    print(grouped_df)
-    return grouped_df
-
-def claims_per_source_label_other():
-    grouped_df = df_Source_labelOTHER.groupby(['source', 'label']).size().reset_index(name='counts')
-    print(grouped_df)
-    return grouped_df
-
-def number_label_false():
-    counts = df_Source_labelFALSE.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
-
-def number_label_true():
-    counts = df_Source_labelTRUE.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
-
-def number_label_mixture():
-    counts = df_Source_labelMIXTURE.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
-
-def number_label_other():
-    counts = df_Source_labelOTHER.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
-
-def number_entity():
-    filtre = df_complete['entity'].notna()
-    df_filtre = df_complete.loc[filtre, ['entity']]
-    filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
-    filtre_group_notna.columns = ['entity', 'counts']
-    filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(50)
-
-    print(filtre_group_notna)
-    return filtre_group_notna
-
-def borne_date1_date2(dat1, dat2):
-    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
-    df_filtre = df_complete[filtre]
-    df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
-    filtre2 = df_filtre2['label'].notna() 
-    df_filtre3 = df_filtre2[filtre2]
-    filtre_group_notna = df_filtre3.groupby(['date1','label'])['label'].size().reset_index(name='counts')
-
-    return filtre_group_notna
-
-
-def borne_entity(dat1, dat2):
-    filtre = df_complete['entity'].notna()
-    df_filtre = df_complete[filtre]
-    df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
-    filtre_group_notna = df_filtre2.groupby(['entity'])['entity'].size().reset_index(name='counts')
-    
-    return filtre_group_notna.sort_values('counts', ascending=False).head(50)
-
-def born_source(source):
-    filtre = df_complete['source'].notna()
-    df_filtre = df_complete[filtre]
-    filtre2 = df_filtre['label'].notna() 
-    df_filtre2 = df_filtre[filtre2]
-    df_filtre3 = df_filtre2[(df_filtre2['source'] == source)]
-
-    filtre_group_notna = df_filtre3.groupby(['source','label'])['source'].size().reset_index(name='counts')
-    
-    return filtre_group_notna
-
-
-############################################################
 
 
 def moy_ent_per_claims_for_df(dataframe):
@@ -444,65 +336,6 @@ def list_numbers_resume():
     return list_numbers_res, list_numbers_resume_JSON
 
 
-def list_resume_claims_per_source_label():
-
-    claims_per_srcs_label = claims_per_source_label()
-    parsed_data = claims_per_srcs_label.to_dict(orient='records')
-
-    l = json.dumps(parsed_data)
-
-    return l
-
-
-def list_resume_claims_per_date_label():
-
-    claims_per_dat_label = claims_per_date_label()
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
-
-    return json_data
-
-
-
-def entity():
-
-    claims_per_dat_label = number_entity()
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
- 
-    return json_data
-
-
-def list_resume_borne_date1_date2(date1,date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
-
-    claims_per_dat_label = borne_date1_date2(date1,date2)
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
-
-    return json_data
-
-
-def list_resume_borne_entities(date1,date2): #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
-
-    claims_per_dat_label = borne_entity(date1,date2)
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
-
-    return json_data
-
-
-def list_resume_borne_source(source):
-
-    claims_per_dat_label = born_source(source)
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
-
-    return json_data
 
 
 
@@ -521,7 +354,335 @@ def dico_numbers_resume():
     list_json = json.dumps(list)
     # print(list_json)
     return list_json
+
+
+
+def json_per_source_label():
+    claims_per_source_label_fetch = claims_per_source_label()
+    data_length= len(claims_per_source_label_fetch)
+    list = []
+
+
+    for i in range(data_length):
+        list.append( {
+        "Source": str(claims_per_source_label_fetch['source'][i]),
+        "Label": str(claims_per_source_label_fetch['label'][i]),
+        "Numbers of claims": str(claims_per_source_label_fetch['counts'][i])
+        })
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
+
+# def json_per_date1_label(date1,date2):
+#     print(date1)
+#     list_claims = claims_per_date_label()
+#     data_length= len(list_claims)
+#     list_claims_gerer = []
+
+
+#     for i in range(data_length):
+#         list_claims_gerer.append( {
+#         "date1": str(list_claims['date1'][i]),
+#         "label": str(list_claims['label'][i]),
+#         "counts": str(list_claims['counts'][i])
+#         })
+
+#     list_json = json.dumps(list_claims_gerer)
+#     # print(list_json)
+#     return list_json
+
+def json_per_entity():
+    number_entity_fetch = number_entity()
+    data_length= len(number_entity_fetch)
+    list = []
+
+    for i in range(data_length):
+        list.append( {
+        "Entity": str(number_entity_fetch['entity'][i]),
+        "Numbers of claims": str(number_entity_fetch['counts'][i])
+        })
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
+
+########################################################################       NOUS     #######################################################################################################
+
+
+
+
+
+
+
+
+############################################################    FONCTION GRAPHE SIMPLE  #####################################################################
+
+def claims_per_source_label():
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
+
+    # Perform another groupby on the result
+    final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+def claims_per_date_label():
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    filtre_group_notna = df_filtre2.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+
+    return filtre_group_notna
+
+
+def number_entity():
+    filtre = df_complete['entity'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
+    return filtre_group_notna
+
+
+def langue_per_label():
+
+    filtre = df_complete['headlineLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['label'].notna()
+    df_filtre2 = df_filtre[filtre2] 
+    #filtre_group_notna = df_filtre2.groupby(['id1'])['id1']
+    filtre_group_notna = df_filtre2.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+def claims_topics():
+    filtre = df_other['topics'].notna()
+    df_filtre = df_other[filtre]
+    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
+    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
+    filtre_group_notna = df_filtre.groupby(['topics'])['topics'].size().reset_index(name='counts')
+
+    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
+
+    return filtre_group_notna_sorted
+
+def number_entity2():
+    filtre = df_complete['entity'].notna()
+    df_filtre = df_complete.loc[filtre, ['entity']]
+    filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
+    filtre_group_notna.columns = ['entity', 'counts']
+    filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(50)
+
+    print(filtre_group_notna)
+    return filtre_group_notna
+##############################################################################################################################################
+
+
+######################################################################  FONTION SUMMARY ###########################################################################
+
+
+def claims_per_source_label_true():
+    grouped_df = df_Source_labelTRUE.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def claims_per_source_label_false():
+    grouped_df = df_Source_labelFALSE.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def claims_per_source_label_mixture():
+    grouped_df = df_Source_labelMIXTURE.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def claims_per_source_label_other():
+    grouped_df = df_Source_labelOTHER.groupby(['source', 'label']).size().reset_index(name='counts')
+    print(grouped_df)
+    return grouped_df
+
+def number_label_false():
+    counts = df_Source_labelFALSE.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+def number_label_true():
+    counts = df_Source_labelTRUE.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+def number_label_mixture():
+    counts = df_Source_labelMIXTURE.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+def number_label_other():
+    counts = df_Source_labelOTHER.groupby(['id1']).size().reset_index(name='counts')['counts']
+    print(counts)
+    return counts
+
+###########################################################################################################################################################
+
+
+
+##############################################################  FONCTION AVEC PARAMETRE #############################################################################
+
+def borne_date1_date2(dat1, dat2):
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
+    filtre2 = df_filtre2['label'].notna() 
+    df_filtre3 = df_filtre2[filtre2]
+    filtre_group_notna = df_filtre3.groupby(['date1','label'])['label'].size().reset_index(name='counts')
+
+    return filtre_group_notna
+
+
+def borne_entity(dat1, dat2):
+    filtre = df_complete['entity'].notna()
+    df_filtre = df_complete[filtre]
+    #df_filtre2 = df_filtre[(df_filtre['entity'] == entity)]
+    df_filtre3 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
+    filtre_group_notna = df_filtre3.groupby(['entity'])['entity'].size().reset_index(name='counts')
     
+    return filtre_group_notna.sort_values('counts', ascending=False).head(50)
+
+
+def born_source(source):
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    df_filtre3 = df_filtre2[(df_filtre2['source'] == source)]
+
+    filtre_group_notna = df_filtre3.groupby(['source','label'])['source'].size().reset_index(name='counts')
+    
+    return filtre_group_notna
+
+
+def born_langue_per_label(dat1,dat2):
+
+    filtre = df_complete['headlineLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['label'].notna()
+    df_filtre2 = df_filtre[filtre2] 
+    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    filtre_group_notna = df_filtre3.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+def born_per_source_label(dat1, dat2):
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    filtre_group_notna = df_filtre3.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
+
+    # Perform another groupby on the result
+    final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+def born_per_topics_date(date1, date2):
+    filtre = df_other['topics'].notna()
+    df_filtre = df_other[filtre]
+    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
+    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
+    df_filtre3 = df_filtre[(df_filtre['creativeWork_datePublished'] >= date1) & (df_filtre['creativeWork_datePublished'] <= date2)]
+    filtre_group_notna = df_filtre3.groupby(['topics'])['topics'].size().reset_index(name='counts')
+    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
+
+    return filtre_group_notna_sorted
+
+def born_per_date_label(date1, date2, granularite):
+    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['label'].notna() 
+    df_filtre2 = df_filtre[filtre2]
+    df_filtre3 = df_filtre2[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+    if(granularite=="annee"):
+        df_filtre4 = df_filtre3[df_filtre3['date1'].str[:4]]
+        print(df_filtre3['date1'].str[:4])
+    else : 
+        df_filtre4 = df_filtre3[df_filtre3['date1'].str[:4]]
+    
+    filtre_group_notna = df_filtre4.groupby(['date1','label'])['date1'].size().reset_index(name='counts')
+
+    return filtre_group_notna
+
+
+######################################################################################################################################################
+
+
+
+
+
+
+###################################################################################   JSON    ######################################################################################""
+
+
+
+
+
+########################################################################## JSON FONCTION SIMPLE ############################################################################
+
+def list_resume_claims_per_source_label():
+
+    claims_per_srcs_label = claims_per_source_label()
+    parsed_data = claims_per_srcs_label.to_dict(orient='records')
+
+    l = json.dumps(parsed_data)
+
+    return l
+
+
+def list_resume_claims_per_date_label():
+
+    claims_per_dat_label = claims_per_date_label()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+
+    return json_data
+
+
+
+def entity():
+
+    claims_per_dat_label = number_entity()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  
+ 
+    return json_data
+
+def entity2():
+
+    claims_per_dat_label = number_entity2()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+ 
+    return json_data
+
+
+#######################################################################################################################################################################
+
+
+
+
+
+
+
+###########################################################################   JSON SUMMARY    ###########################################################################
+
+
 def json_per_source_label_true():
 
     grouped_label = claims_per_source_label_true()
@@ -598,84 +759,134 @@ def json_number_other():
     "counts": str(len(number_label_other()))
     })
 
-def json_per_source_label():
-    claims_per_source_label_fetch = claims_per_source_label()
-    data_length= len(claims_per_source_label_fetch)
-    list = []
+
+###############################################################################################################################################################
+ 
 
 
-    for i in range(data_length):
-        list.append( {
-        "Source": str(claims_per_source_label_fetch['source'][i]),
-        "Label": str(claims_per_source_label_fetch['label'][i]),
-        "Numbers of claims": str(claims_per_source_label_fetch['counts'][i])
-        })
-
-    list_json = json.dumps(list)
-    # print(list_json)
-    return list_json
-
-def json_per_date1_label(date1,date2):
-    print(date1)
-    list_claims = claims_per_date_label()
-    data_length= len(list_claims)
-    list_claims_gerer = []
 
 
-    for i in range(data_length):
-        list_claims_gerer.append( {
-        "date1": str(list_claims['date1'][i]),
-        "label": str(list_claims['label'][i]),
-        "counts": str(list_claims['counts'][i])
-        })
-
-    list_json = json.dumps(list_claims_gerer)
-    # print(list_json)
-    return list_json
-
-def json_per_entity():
-    number_entity_fetch = number_entity()
-    data_length= len(number_entity_fetch)
-    list = []
-
-    for i in range(data_length):
-        list.append( {
-        "Entity": str(number_entity_fetch['entity'][i]),
-        "Numbers of claims": str(number_entity_fetch['counts'][i])
-        })
-
-    list_json = json.dumps(list)
-    # print(list_json)
-    return list_json
 
 
-### Suggestions for the searching part
 
-## Tis will return entities that has at least 3 entities prioritizing the most popular entities and the exact entity searched if it exists
+
+########################################################################    JSON FONCTION PARAMETRE     ###################################################################
+
+
+
+def list_resume_borne_date1_date2(date1, date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+
+    claims_per_dat_label = borne_date1_date2(date1, date2)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  # Convertir en une chaîne JSON
+
+    return json_data
+
+
+
+def list_resume_borne_source(source):
+
+    claims_per_dat_label = born_source(source)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  
+
+    return json_data
+
+
+def list_resume_claims_per_topics():
+
+    claims_per_dat_label = claims_topics()
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+
+    return json_data
+
+
+def list_resume_claims_per_langues():
+
+    claims_per_langue_label = langue_per_label()
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+
+    return json_data
+
+def list_resume_borne_date1_date2_entity(date1, date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+
+    claims_per_dat_label = borne_entity(date1, date2)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)  
+
+    return json_data
+
+
+def list_resume_born_claims_per_langues(dat1,dat2):
+
+    claims_per_langue_label = born_langue_per_label(dat1,dat2)
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)
+
+    return json_data
+
+
+def list_resume_born_source_label(dat1,dat2):
+
+    claims_per_langue_label = born_per_source_label(dat1,dat2)
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)
+
+    return json_data
+
+
+def list_resume_born_topics(dat1, dat2):
+    claims_per_langue_label = born_per_topics_date(dat1,dat2)
+    parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data)
+
+    return json_data
+
+
+def list_resume_born_per_date_label(dat1, dat2, granularite):
+
+    claims_per_dat_label = born_per_date_label(dat1, dat2, granularite)
+    parsed_data = claims_per_dat_label.to_dict(orient='records')
+
+    json_data = json.dumps(parsed_data) 
+
+    return json_data
+
+
+#########################################################################################################################################################################
+
+
+### Suggestions for the searching part 
+
+## This will return entities that has at least 3 entities prioritizing the most popular entities and the exact entity searched if it exists
 def suggestions(query):
     try:
         # Normalize case and filter entries
         suggestions = df_complete[df_complete['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
         suggestions_lower = suggestions.str.lower()
-
         # Count occurrences and filter
         entity_counts = suggestions_lower.value_counts()
-
         # Filter original DataFrame for entities that appear 3 or more times
         frequent_entities = entity_counts[entity_counts >= 3]
-
         # Sort entities by count (descending) and length of entity name (ascending)
         frequent_entities_sorted = sorted(frequent_entities.items(), key=lambda x: (-x[1], len(x[0])))
-
         # Check if the normalized query exists in the frequent entities and prioritize it
         normalized_query = query.lower()
         result = [entity[0] for entity in frequent_entities_sorted]
-
         # If the query exists in the results, prioritize it
         if normalized_query in result:
             # Move the query to the front of the list
             result.insert(0, result.pop(result.index(normalized_query)))
-
         print(result)  # Debugging
         return jsonify(result)
 
@@ -683,15 +894,33 @@ def suggestions(query):
         current_app.logger.error(f'Error processing request: {str(e)}')
         return jsonify(error=str(e)), 500
     
+
+## Retreive themes 
+def extract_topics():
+    # Initialize an empty set to store unique topics
+    unique_topics = set()
+    for prediction in df_other['prediction']:
+        # Split the prediction string by commas and remove empty elements
+        if isinstance(prediction, str):
+            topics = [topic.strip().replace("_pred", "") for topic in prediction.split(',') if topic.strip()]
+            # Add each topic to the set of unique topics
+            unique_topics.update(topics)
+    # Convert the set to a list and jsonify the result
+    return jsonify(list(unique_topics))
 
 ### Searching Form treatement
-def json_entity_dates_searchs(selectedEntities,firstDate,lastDate):
-    try:
-        result=selectedEntities
-        print(result)  # Debugging
-        return jsonify(result)
+def json_entity_dates_searchs(selectedEntities, firstDate, lastDate):
 
-    except Exception as e:
-        current_app.logger.error(f'Error processing request: {str(e)}')
-        return jsonify(error=str(e)), 500
+    return jsonify(selectedEntities)
+
+
+def json_topic_dates_searchs(firstDate, lastDate, topic):
+
+    return jsonify(topic)
+
+
+def json_entity_topic_dates_searchs(selectedEntities,firstDate,lastDate,topic):
     
+    return jsonify(selectedEntities)
+
+
