@@ -513,18 +513,27 @@ def number_label_false(dat1, dat2):
     print(counts)
     return counts
 
-def number_label_true():
-    counts = df_Source_labelTRUE.groupby(['id1']).size().reset_index(name='counts')['counts']
+def number_label_true(dat1, dat2):
+    df_filtre = df_Source_labelTRUE
+    if dat1 is not None: 
+        df_filtre = df_Source_labelTRUE[(df_Source_labelTRUE['date1'] >= dat1) & (df_Source_labelTRUE['date1'] <= dat2)]
+    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
     print(counts)
     return counts
 
-def number_label_mixture():
-    counts = df_Source_labelMIXTURE.groupby(['id1']).size().reset_index(name='counts')['counts']
+def number_label_mixture(dat1, dat2):
+    df_filtre = df_Source_labelMIXTURE
+    if dat1 is not None: 
+        df_filtre = df_Source_labelMIXTURE[(df_Source_labelMIXTURE['date1'] >= dat1) & (df_Source_labelMIXTURE['date1'] <= dat2)]
+    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
     print(counts)
     return counts
 
-def number_label_other():
-    counts = df_Source_labelOTHER.groupby(['id1']).size().reset_index(name='counts')['counts']
+def number_label_other(dat1, dat2):
+    df_filtre = df_Source_labelOTHER
+    if dat1 is not None: 
+        df_filtre = df_Source_labelOTHER[(df_Source_labelOTHER['date1'] >= dat1) & (df_Source_labelOTHER['date1'] <= dat2)]
+    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
     print(counts)
     return counts
 
@@ -747,22 +756,22 @@ def json_number_false(date1, date2):
     "counts": str(taille)
     })
 
-def json_number_true():
+def json_number_true(date1, date2):
 
     return ( {
-    "counts": str(len(number_label_true()))
+    "counts": str(len(number_label_true(date1, date2)))
     })
 
-def json_number_mixture():
+def json_number_mixture(date1, date2):
 
     return ( {
-    "counts": str(len(number_label_mixture()))
+    "counts": str(len(number_label_mixture(date1, date2)))
     })
 
-def json_number_other():
+def json_number_other(date1, date2):
 
     return ( {
-    "counts": str(len(number_label_other()))
+    "counts": str(len(number_label_other(date1, date2)))
     })
 
 

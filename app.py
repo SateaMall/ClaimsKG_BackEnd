@@ -82,16 +82,19 @@ def json_number_false_end(date1=None, date2=None):
     return json_number_false(date1, date2)
 
 @app.route("/number_true")
-def json_number_true_end():
-    return json_number_true()
+@app.route("/number_true/<date1>/<date2>")
+def json_number_true_end(date1=None, date2=None):
+    return json_number_true(date1, date2)
 
 @app.route("/number_mixture")
-def json_number_mixture_end():
-    return json_number_mixture()
+@app.route("/number_mixture/<date1>/<date2>")
+def json_number_mixture_end(date1= None, date2=None):
+    return json_number_mixture(date1, date2)
 
 @app.route("/number_other")
-def json_number_other_end():
-    return json_number_other()
+@app.route("/number_other/<date1>/<date2>")
+def json_number_other_end(date1=None, date2=None):
+    return json_number_other(date1, date2)
 
 ###########################################################################
 

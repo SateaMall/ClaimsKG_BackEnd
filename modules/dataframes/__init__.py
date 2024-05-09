@@ -48,13 +48,9 @@ def generate_per_label_dataframe():
                     schema:alternateName ?label FILTER regex(str(?label),"TRUE", "i").
                     ?id1 schema:author ?source_temp.
                     ?source_temp schema:name ?source.
-                                     """, "distinct ?id1 ?source ?label")
-    qudates_cr = SparQLOffsetFetcher(sparql, 10000, prefixes,
-                                     """
-                    ?id1 a schema:ClaimReview.
-                    ?id1 schema:itemReviewed ?id2.
                     ?id1 schema:datePublished ?date1.
-                                     """, "?id1 ?date1")
+                                     """, "distinct ?id1 ?source ?label ?date1")
+
 
     label_false = SparQLOffsetFetcher(sparql, 10000,
                                       prefixes,
@@ -65,7 +61,9 @@ def generate_per_label_dataframe():
                      schema:alternateName ?label FILTER regex(str(?label),"FALSE", "i").
                      ?id1 schema:author ?source_temp.
                      ?source_temp schema:name ?source.
-                                      """, "distinct ?id1 ?source ?label")
+                     ?id1 schema:datePublished ?date1.
+
+                                      """, "distinct ?id1 ?source ?label ?date1")
 
     label_mixture = SparQLOffsetFetcher(sparql, 10000,
                                         prefixes,
@@ -76,7 +74,8 @@ def generate_per_label_dataframe():
                        schema:alternateName ?label FILTER regex(str(?label),"MIXTURE", "i").
                        ?id1 schema:author ?source_temp.
                        ?source_temp schema:name ?source.
-                                        """, "distinct ?id1 ?source ?label")
+                       ?id1 schema:datePublished ?date1.
+                                        """, "distinct ?id1 ?source ?label ?date1")
 
     label_other = SparQLOffsetFetcher(sparql, 10000,
                                       prefixes,
@@ -87,27 +86,23 @@ def generate_per_label_dataframe():
                      schema:alternateName ?label FILTER regex(str(?label),"OTHER", "i").
                      ?id1 schema:author ?source_temp.
                      ?source_temp schema:name ?source.
-                                      """, "distinct ?id1 ?source ?label")
+                     ?id1 schema:datePublished ?date1.
+                                      """, "distinct ?id1 ?source ?label ?date1")
 
     df_source_label_true = get_sparql_dataframe(label_true)
-    df_source_label_true2 = get_sparql_dataframe(qudates_cr)
 
     df_source_label_false = get_sparql_dataframe(label_false)
     df_source_label_mixture = get_sparql_dataframe(label_mixture)
     df_source_label_other = get_sparql_dataframe(label_other)
 
-    #df_entities_complete = pandas.concat([df_entities, df_entities2]).drop_duplicates().reset_index(drop=True)
 
 
-    df_date_label_true = pandas.merge(df_source_label_true, df_source_label_true2, on=['id1'], how='outer')
-
-
-    df_date_label_true.to_csv("modules/df_Source_labelTRUE.csv", quoting=csv.QUOTE_MINIMAL, na_rep='NaN', index=False)
-    df_source_label_false.to_csv("modules/df_Source_labelFALSE.csv", quoting=csv.QUOTE_MINIMAL, na_rep='NaN',
+    df_source_label_true.to_csv("modules/df_Source_labelTRUE.csv", quoting=csv.QUOTE_NONNUMERIC, na_rep='NaN', index=False)
+    df_source_label_false.to_csv("modules/df_Source_labelFALSE.csv", quoting=csv.QUOTE_NONNUMERIC, na_rep='NaN',
                                  index=False)
-    df_source_label_mixture.to_csv("modules/df_Source_labelMIXTURE.csv", quoting=csv.QUOTE_MINIMAL, na_rep='NaN',
+    df_source_label_mixture.to_csv("modules/df_Source_labelMIXTURE.csv", quoting=csv.QUOTE_NONNUMERIC, na_rep='NaN',
                                    index=False)
-    df_source_label_other.to_csv("modules/df_Source_labelOTHER.csv", quoting=csv.QUOTE_MINIMAL, na_rep='NaN',
+    df_source_label_other.to_csv("modules/df_Source_labelOTHER.csv", quoting=csv.QUOTE_NONNUMERIC, na_rep='NaN',
                                  index=False)
     return 'ok dataframe per label generation'
 
