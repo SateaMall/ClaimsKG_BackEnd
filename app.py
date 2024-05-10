@@ -25,7 +25,9 @@ from modules.statistics.summary import json_entity_dates_searchs
 from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
 from modules.statistics.summary import list_resume_borne_source
+from modules.statistics.summary import list_resume_claims_per_topics2
 from modules.statistics.summary import list_resume_claims_per_topics
+
 from modules.statistics.summary import list_resume_borne_date1_date2_entity
 from modules.statistics.summary import list_resume_claims_per_langues
 from modules.statistics.summary import entity2
@@ -124,7 +126,7 @@ def json_entity():
 def entity():
     return entity2()
 
-@app.route("/json_born_date/<date1>/<date2>")  #####regarder ca
+@app.route("/json_born_date/<date1>/<date2>")  #####supp ca
 def json_borned_bydate(date1,date2):
     return list_resume_borne_date1_date2(date1,date2)
 
@@ -134,15 +136,16 @@ def json6_borned_source(source):
 
 @app.route("/json_per_topics")
 def json_topics():
-    return list_resume_claims_per_topics()
+    return list_resume_claims_per_topics2()
 
 @app.route("/json_per_entity_date1_date2/<date1>/<date2>")
 def json_born_entity_date(date1, date2):
     return list_resume_borne_date1_date2_entity(date1, date2)
 
 @app.route("/json_per_langue_label")
-def json_langue_label():
-    return list_resume_claims_per_langues()
+@app.route("/json_per_langue_label/<date1>/<date2>")
+def json_langue_label(date1=None, date2=None):
+    return list_resume_claims_per_langues(date1, date2)
 
 
 @app.route("/json_born_per_source_label/<date1>/<date2>")

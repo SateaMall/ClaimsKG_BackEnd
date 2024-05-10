@@ -447,18 +447,6 @@ def number_entity():
     return filtre_group_notna
 
 
-def langue_per_label():
-
-    filtre = df_complete['headlineLang'].notna()
-    df_filtre = df_complete[filtre] 
-    filtre2 = df_filtre['label'].notna()
-    df_filtre2 = df_filtre[filtre2] 
-    #filtre_group_notna = df_filtre2.groupby(['id1'])['id1']
-    filtre_group_notna = df_filtre2.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
-    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
-
-    return final_grouped
-
 def claims_topics():
     filtre = df_other['topics'].notna()
     df_filtre = df_other[filtre]
@@ -549,9 +537,10 @@ def borne_date1_date2(dat1, dat2):
     df_filtre2 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
     filtre2 = df_filtre2['label'].notna() 
     df_filtre3 = df_filtre2[filtre2]
-    filtre_group_notna = df_filtre3.groupby(['date1','label'])['label'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre3.groupby(['id1','date1','label'])['label'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['date1', 'label'])['counts'].size().reset_index(name='counts')
 
-    return filtre_group_notna
+    return final_grouped
 
 
 def borne_entity(dat1, dat2):
@@ -609,6 +598,7 @@ def born_per_topics_date(date1, date2):
     df_filtre3 = df_filtre[(df_filtre['creativeWork_datePublished'] >= date1) & (df_filtre['creativeWork_datePublished'] <= date2)]
     filtre_group_notna = df_filtre3.groupby(['topics'])['topics'].size().reset_index(name='counts')
     filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
+    print(filtre_group_notna)
 
     return filtre_group_notna_sorted
 
@@ -628,6 +618,23 @@ def born_per_date_label(date1, date2, granularite):
     filtre_group_notna = df_filtre3.groupby(['id1','date1','label'])['date1'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['date1', 'label'])['counts'].size().reset_index(name='counts')
 
+
+    return final_grouped
+
+
+def langue_per_label(dat1, dat2):
+
+    filtre = df_complete['headlineLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['label'].notna()
+    df_filtre2 = df_filtre[filtre2]
+    if dat1 is not None: 
+        filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
+        df_filtre2 = df_filtre2[filtre3]
+        df_filtre2 = df_filtre2[(df_filtre['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    #filtre_group_notna = df_filtre2.groupby(['id1'])['id1']
+    filtre_group_notna = df_filtre2.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
 
@@ -815,14 +822,46 @@ def list_resume_claims_per_topics():
     claims_per_dat_label = claims_topics()
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
+
     json_data = json.dumps(parsed_data) 
 
-    return json_data
+    return parsed_data
+ 
+
+import ast
+
+def string_to_set(string):
+    # Utiliser ast.literal_eval() pour évaluer la chaîne en tant qu'expression Python
+    set_str = ast.literal_eval(string)
+
+    # Si l'objet évalué est un ensemble, retourner le tableau d'éléments
+    if isinstance(set_str, set):
+        return list(set_str)
+
+    # Sinon, retourner une liste vide
+    return []
+
+print(string_to_set("{'a','b'}"))
+
+def list_resume_claims_per_topics2():
+    number_entity_fetch = claims_topics()
+    data_length= len(number_entity_fetch)
+    list = []
+
+    for i in range(data_length):
+        list.append( {
+        "topics": string_to_set(number_entity_fetch['topics'][i]),
+        "counts": str(number_entity_fetch['counts'][i])
+        })
+
+    list_json = json.dumps(list)
+    # print(list_json)
+    return list_json
 
 
-def list_resume_claims_per_langues():
+def list_resume_claims_per_langues(date1 ,date2):
 
-    claims_per_langue_label = langue_per_label()
+    claims_per_langue_label = langue_per_label(date1, date2)
     parsed_data = claims_per_langue_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data) 
@@ -873,9 +912,12 @@ def list_resume_born_per_date_label(dat1, dat2, granularite):
     claims_per_dat_label = born_per_date_label(dat1, dat2, granularite)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
-    json_data = json.dumps(parsed_data) 
+    for item in parsed_data:
+        item["topics"] = eval(item["topics"])
 
-    return json_data
+    json_data= json.dumps(parsed_data)
+
+    return parsed_data 
 
 
 #########################################################################################################################################################################
