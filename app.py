@@ -138,9 +138,20 @@ def json6_borned_source(source):
 def json_topics():
     return list_resume_claims_per_topics2()
 
+########################################## ayoub ################################
+
+@app.route("/json_per_entity_date1_date2")
+@app.route("/json_per_entity_date1_date2/<entity>")
 @app.route("/json_per_entity_date1_date2/<date1>/<date2>")
-def json_born_entity_date(date1, date2):
-    return list_resume_borne_date1_date2_entity(date1, date2)
+@app.route("/json_per_entity_date1_date2/<entity>/<date1>/<date2>")
+def json_born_entity_date(entity=None, date1=None, date2=None):
+    if entity is not None:
+        list_entity = entity.split(',')
+    else:
+        list_entity = [] 
+    return list_resume_borne_date1_date2_entity(list_entity, date1, date2)
+
+################################################################################
 
 @app.route("/json_per_langue_label")
 @app.route("/json_per_langue_label/<date1>/<date2>")

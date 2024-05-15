@@ -545,12 +545,19 @@ def borne_date1_date2(dat1, dat2):
     return final_grouped
 
 
-def borne_entity(dat1, dat2):
+def borne_entity(entity, dat1, dat2):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
-    #df_filtre2 = df_filtre[(df_filtre['entity'] == entity)]
-    df_filtre3 = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
-    filtre_group_notna = df_filtre3.groupby(['entity'])['entity'].size().reset_index(name='counts')
+
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre = df_filtre[~df_filtre['entity'].isin(entity)]
+        else:
+            df_filtre = df_filtre[(df_filtre['entity'] != entity)]
+    if dat1 is not None:    
+        df_filtre = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
+
+    filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
     
     return filtre_group_notna.sort_values('counts', ascending=False).head(50)
 
@@ -1000,9 +1007,9 @@ def list_resume_claims_per_langues(date1 ,date2):
 
     return json_data
 
-def list_resume_borne_date1_date2_entity(date1, date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+def list_resume_borne_date1_date2_entity(entity, date1, date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
 
-    claims_per_dat_label = borne_entity(date1, date2)
+    claims_per_dat_label = borne_entity(entity, date1, date2)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  
