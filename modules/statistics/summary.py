@@ -460,7 +460,7 @@ def claims_topics():
 
 def number_entity2():
     filtre = df_complete['entity'].notna()
-    df_filtre = df_complete.loc[filtre, ['entity']]
+    df_filtre = df_complete[filtre]
     filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
     filtre_group_notna.columns = ['entity', 'counts']
     filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(50)
@@ -567,13 +567,13 @@ def born_source(source):
 
 def born_langue_per_label(dat1,dat2):
 
-    filtre = df_complete['headlineLang'].notna()
+    filtre = df_complete['reviewBodyLang'].notna()
     df_filtre = df_complete[filtre] 
     filtre2 = df_filtre['label'].notna()
     df_filtre2 = df_filtre[filtre2] 
     df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
-    filtre_group_notna = df_filtre3.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
-    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre3.groupby(['id1','reviewBodyLang', 'label'])['reviewBodyLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
 
@@ -624,7 +624,7 @@ def born_per_date_label(date1, date2, granularite):
 
 def langue_per_label(dat1, dat2):
 
-    filtre = df_complete['headlineLang'].notna()
+    filtre = df_complete['reviewBodyLang'].notna()
     df_filtre = df_complete[filtre] 
     filtre2 = df_filtre['label'].notna()
     df_filtre2 = df_filtre[filtre2]
@@ -633,15 +633,87 @@ def langue_per_label(dat1, dat2):
         df_filtre2 = df_filtre2[filtre3]
         df_filtre2 = df_filtre2[(df_filtre['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
     #filtre_group_notna = df_filtre2.groupby(['id1'])['id1']
-    filtre_group_notna = df_filtre2.groupby(['id1','headlineLang', 'label'])['headlineLang'].size().reset_index(name='counts')
-    final_grouped = filtre_group_notna.groupby(['headlineLang', 'label'])['counts'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre2.groupby(['id1','reviewBodyLang', 'label'])['reviewBodyLang'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
 
 
 ######################################################################################################################################################
 
+#################################################################   Fontion SATEA   #########################################################################
 
+def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
+    filtre = df_complete['label'].notna()
+    df_filtre = df_complete[filtre]
+    filtre2 = df_filtre['entity'].notna()
+    df_filtre2 = df_filtre[filtre2]
+    filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
+    df_filtre3 = df_filtre2[filtre3]
+    # temporaire essayer de comprendre pourquoi nous ne pouvons pas ecrire en majuscule dans l'url
+    if (label == "true"):
+        label="TRUE"
+    if (label == "false"):
+        label="FALSE"
+    if (label == "mixture"):
+        label="MIXTURE"
+    if (label == "other"):
+        label="OTHER"    
+ 
+    if entity is not None:
+        df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+    if dat1 is not None: 
+        df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
+    if label is not None: 
+        df_filtre3 = df_filtre3[(df_filtre3['label'] == label)]
+
+    filtre_group_notna = df_filtre3.groupby(['id1','entity', 'label'])['entity'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['entity', 'label'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+
+def entite_per_langue_filtre_per_date(entity, langue, dat1, dat2):
+    filtre = df_complete['reviewBodyLang'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['entity'].notna()
+    df_filtre2 = df_filtre[filtre2]
+    filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
+    df_filtre3 = df_filtre2[filtre3]
+    
+    if entity is not None:  
+        df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+    if dat1 is not None: 
+        df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
+    if langue is not None:
+        df_filtre3 = df_filtre3[(df_filtre3['reviewBodyLang'] == langue)]
+    
+    filtre_group_notna = df_filtre3.groupby(['id1','entity', 'reviewBodyLang'])['entity'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['entity', 'reviewBodyLang'])['counts'].size().reset_index(name='counts')
+
+    return final_grouped
+
+
+def entite_per_source_filtre_per_date(entity, source, dat1, dat2):
+    filtre = df_complete['source'].notna()
+    df_filtre = df_complete[filtre] 
+    filtre2 = df_filtre['entity'].notna()
+    df_filtre2 = df_filtre[filtre2]
+    filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
+    df_filtre3 = df_filtre2[filtre3]
+
+    if entity is not None:        
+        df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+    if dat1 is not None: 
+        df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
+    if source is not None:
+        df_filtre3 = df_filtre3[(df_filtre3['source'] == source)]
+
+
+    filtre_group_notna = df_filtre3.groupby(['id1','entity', 'source'])['entity'].size().reset_index(name='counts')
+    final_grouped = filtre_group_notna.groupby(['entity', 'source'])['counts'].size().reset_index(name='counts')
+    
+    return final_grouped
 
 
 
@@ -649,6 +721,34 @@ def langue_per_label(dat1, dat2):
 ###################################################################################   JSON    ######################################################################################""
 
 
+##########################################################################  JSON SATEA  ############################################################################### 
+
+def list_resume_entite_per_label_filtre_per_date(entity, label, date1, date2):
+
+    claims_per_srcs_label = entite_per_label_filtre_per_date(entity, label, date1, date2)
+    parsed_data = claims_per_srcs_label.to_dict(orient='records')
+
+    l = json.dumps(parsed_data)
+
+    return l
+
+def list_resume_entite_per_langue_filtre_per_date(entity, langue, date1, date2):
+
+    claims_per_srcs_label = entite_per_langue_filtre_per_date(entity, langue, date1, date2)
+    parsed_data = claims_per_srcs_label.to_dict(orient='records')
+
+    l = json.dumps(parsed_data)
+
+    return l
+
+def list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2):
+
+    claims_per_srcs_label = entite_per_source_filtre_per_date(entity, source, date1, date2)
+    parsed_data = claims_per_srcs_label.to_dict(orient='records')
+
+    l = json.dumps(parsed_data)
+
+    return l
 
 
 
@@ -912,12 +1012,9 @@ def list_resume_born_per_date_label(dat1, dat2, granularite):
     claims_per_dat_label = born_per_date_label(dat1, dat2, granularite)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
-    for item in parsed_data:
-        item["topics"] = eval(item["topics"])
-
     json_data= json.dumps(parsed_data)
 
-    return parsed_data 
+    return json_data 
 
 
 #########################################################################################################################################################################
@@ -979,5 +1076,4 @@ def json_topic_dates_searchs(firstDate, lastDate, topic):
 def json_entity_topic_dates_searchs(selectedEntities,firstDate,lastDate,topic):
     
     return jsonify(selectedEntities)
-
 

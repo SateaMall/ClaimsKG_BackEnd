@@ -13,9 +13,9 @@ from modules.statistics.summary import json_number_false
 from modules.statistics.summary import json_number_true
 from modules.statistics.summary import json_number_mixture
 from modules.statistics.summary import json_number_other
-
+from modules.statistics.summary import list_resume_entite_per_label_filtre_per_date
 from modules.statistics.summary import moy_ent_per_claims_for_df 
-
+from modules.statistics.summary import list_resume_entite_per_langue_filtre_per_date
 from modules.statistics.summary import json_per_source_label_true
 from modules.statistics.summary import json_per_source_label_false
 from modules.statistics.summary import json_per_source_label_mixture
@@ -27,12 +27,12 @@ from modules.statistics.summary import list_resume_borne_date1_date2
 from modules.statistics.summary import list_resume_borne_source
 from modules.statistics.summary import list_resume_claims_per_topics2
 from modules.statistics.summary import list_resume_claims_per_topics
-
+from modules.statistics.summary import entite_per_source_filtre_per_date
 from modules.statistics.summary import list_resume_borne_date1_date2_entity
 from modules.statistics.summary import list_resume_claims_per_langues
 from modules.statistics.summary import entity2
 from modules.statistics.summary import list_resume_born_topics
-
+from modules.statistics.summary import list_resume_entite_per_source_filtre_per_date
 from modules.statistics.summary import list_resume_born_source_label
 
 from modules.statistics.summary import dico_numbers_resume
@@ -156,8 +156,39 @@ def born_per_source_label(date1, date2):
 def born_per_topics(date1, date2):
     return list_resume_born_topics(date1, date2)
 
+########################################################   Endpoint SATEA  ###########################################################
 
-###########################################################################
+@app.route("/json_born_entite_label_filtre_date")
+@app.route("/json_born_entite_label_filtre_date/<entity>")
+@app.route("/json_born_entite_label_filtre_date/<label>")
+@app.route("/json_born_entite_label_filtre_date/<date1>/<date2>")
+@app.route("/json_born_entite_label_filtre_date/<label>/<date1>/<date2>")
+@app.route("/json_born_entite_label_filtre_date/<entity>/<date1>/<date2>")
+@app.route("/json_born_entite_label_filtre_date/<entity>/<label>/<date1>/<date2>")
+def born_per_entite_label_filtre_date(entity= None, label= None, date1= None, date2= None):
+    return list_resume_entite_per_label_filtre_per_date(entity, label, date1, date2)
+
+@app.route("/json_born_entite_langue_filtre_date")
+@app.route("/json_born_entite_langue_filtre_date/<entity>")
+@app.route("/json_born_entite_langue_filtre_date/<langue>")
+@app.route("/json_born_entite_langue_filtre_date/<date1>/<date2>")
+@app.route("/json_born_entite_langue_filtre_date/<langue>/<date1>/<date2>")
+@app.route("/json_born_entite_langue_filtre_date/<entity>/<date1>/<date2>")
+@app.route("/json_born_entite_langue_filtre_date/<entity>/<langue>/<date1>/<date2>")
+def born_per_entite_langue_filtre_date(entity=None, langue=None, date1= None, date2= None):
+    return list_resume_entite_per_langue_filtre_per_date(entity, langue, date1, date2)
+
+@app.route("/json_born_entite_source_filtre_date")
+@app.route("/json_born_entite_source_filtre_date/<entity>")
+@app.route("/json_born_entite_source_filtre_date/<source>")
+@app.route("/json_born_entite_source_filtre_date/<date1>/<date2>")
+@app.route("/json_born_entite_source_filtre_date/<source>/<date1>/<date2>")
+@app.route("/json_born_entite_source_filtre_date/<entity>/<date1>/<date2>")
+@app.route("/json_born_entite_source_filtre_date/<entity>/<source>/<date1>/<date2>")
+def born_per_entite_source_filtre_date(entity=None, source=None, date1= None, date2= None):
+    return list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2)
+
+##################################################################################################################
 
 @app.route ("/resume")
 def resume():
@@ -201,3 +232,13 @@ def search_topic():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
+
+
+
+
+
+

@@ -165,9 +165,9 @@ def generate_global_dataframe():
                                 """
                     ?id1 a schema:ClaimReview;
                     schema:author ?author;
-                    schema:headline ?headline.
-                    Bind(lang(?headline) AS ?headlineLang)
-                                """, "distinct ?id1 ?headlineLang")
+                    schema:reviewBody ?reviewBody.
+                    Bind(lang(?reviewBody) AS ?reviewBodyLang)
+                                """, "distinct ?id1 ?reviewBodyLang")
 
     #qudates_cw = SparQLOffsetFetcher(sparql, 10000, prefixes,
     #                                 """
