@@ -3,6 +3,8 @@ import json
 from flask import current_app, jsonify
 import pandas
 
+from langcodes import Language
+
 from modules.dataframes.dataframe_singleton import df_complete
 from modules.dataframes.dataframe_singleton import df_other
 from modules.dataframes.dataframe_singleton import df_Source_labelFALSE
@@ -641,6 +643,18 @@ def langue_per_label(dat1, dat2):
 
 ######################################################################################################################################################
 
+
+#################################################################    FONCTION CHANGE CODE EN LANGUE    #######################################################
+
+def changecode_langue(code):
+    try:
+        lang = Language.get(code)
+        return lang.display_name()
+    except ValueError:
+        return code
+
+
+
 #################################################################   Fontion SATEA   #########################################################################
 
 def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
@@ -736,6 +750,10 @@ def list_resume_entite_per_langue_filtre_per_date(entity, langue, date1, date2):
 
     claims_per_srcs_label = entite_per_langue_filtre_per_date(entity, langue, date1, date2)
     parsed_data = claims_per_srcs_label.to_dict(orient='records')
+    for item in parsed_data:
+        language_code = item['reviewBodyLang']  
+        language_name = changecode_langue(language_code)
+        item['reviewBodyLang'] = language_name
 
     l = json.dumps(parsed_data)
 
@@ -964,6 +982,11 @@ def list_resume_claims_per_langues(date1 ,date2):
     claims_per_langue_label = langue_per_label(date1, date2)
     parsed_data = claims_per_langue_label.to_dict(orient='records')
 
+    for item in parsed_data:
+        language_code = item['reviewBodyLang']  
+        language_name = changecode_langue(language_code)
+        item['reviewBodyLang'] = language_name
+
     json_data = json.dumps(parsed_data) 
 
     return json_data
@@ -982,6 +1005,11 @@ def list_resume_born_claims_per_langues(dat1,dat2):
 
     claims_per_langue_label = born_langue_per_label(dat1,dat2)
     parsed_data = claims_per_langue_label.to_dict(orient='records')
+
+    for item in parsed_data:
+        language_code = item['reviewBodyLang']  
+        language_name = changecode_langue(language_code)
+        item['reviewBodyLang'] = language_name
 
     json_data = json.dumps(parsed_data)
 
