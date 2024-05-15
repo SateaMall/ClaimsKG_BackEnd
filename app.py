@@ -156,7 +156,7 @@ def born_per_source_label(date1, date2):
 def born_per_topics(date1, date2):
     return list_resume_born_topics(date1, date2)
 
-########################################################   Endpoint SATEA  ###########################################################
+########################################################   Endpoint Recherche  ###########################################################
 
 @app.route("/json_born_entite_label_filtre_date")
 @app.route("/json_born_entite_label_filtre_date/<entity>")
@@ -166,7 +166,11 @@ def born_per_topics(date1, date2):
 @app.route("/json_born_entite_label_filtre_date/<entity>/<date1>/<date2>")
 @app.route("/json_born_entite_label_filtre_date/<entity>/<label>/<date1>/<date2>")
 def born_per_entite_label_filtre_date(entity= None, label= None, date1= None, date2= None):
-    return list_resume_entite_per_label_filtre_per_date(entity, label, date1, date2)
+    if entity is not None:
+        list_entity = entity.split(',')
+    else:
+        list_entity = [] 
+    return list_resume_entite_per_label_filtre_per_date(list_entity, label, date1, date2)
 
 @app.route("/json_born_entite_langue_filtre_date")
 @app.route("/json_born_entite_langue_filtre_date/<entity>")
@@ -176,7 +180,11 @@ def born_per_entite_label_filtre_date(entity= None, label= None, date1= None, da
 @app.route("/json_born_entite_langue_filtre_date/<entity>/<date1>/<date2>")
 @app.route("/json_born_entite_langue_filtre_date/<entity>/<langue>/<date1>/<date2>")
 def born_per_entite_langue_filtre_date(entity=None, langue=None, date1= None, date2= None):
-    return list_resume_entite_per_langue_filtre_per_date(entity, langue, date1, date2)
+    if entity is not None:
+        list_entity = entity.split(',')
+    else:
+        list_entity = [] 
+    return list_resume_entite_per_langue_filtre_per_date(list_entity, langue, date1, date2)
 
 @app.route("/json_born_entite_source_filtre_date")
 @app.route("/json_born_entite_source_filtre_date/<entity>")
@@ -186,7 +194,11 @@ def born_per_entite_langue_filtre_date(entity=None, langue=None, date1= None, da
 @app.route("/json_born_entite_source_filtre_date/<entity>/<date1>/<date2>")
 @app.route("/json_born_entite_source_filtre_date/<entity>/<source>/<date1>/<date2>")
 def born_per_entite_source_filtre_date(entity=None, source=None, date1= None, date2= None):
-    return list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2)
+    if entity is not None:
+        list_entity = entity.split(',')
+    else:
+        list_entity = [] 
+    return list_resume_entite_per_source_filtre_per_date(list_entity, source, date1, date2)
 
 ##################################################################################################################
 

@@ -675,7 +675,10 @@ def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
         label="OTHER"    
  
     if entity is not None:
-        df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+        if isinstance(entity, list):
+            df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
+        else:
+            df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
     if dat1 is not None: 
         df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
     if label is not None: 
@@ -695,8 +698,11 @@ def entite_per_langue_filtre_per_date(entity, langue, dat1, dat2):
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
     df_filtre3 = df_filtre2[filtre3]
     
-    if entity is not None:  
-        df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
+        else:
+            df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
     if dat1 is not None: 
         df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
     if langue is not None:
@@ -716,8 +722,11 @@ def entite_per_source_filtre_per_date(entity, source, dat1, dat2):
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
     df_filtre3 = df_filtre2[filtre3]
 
-    if entity is not None:        
-        df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
+        else:
+            df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
     if dat1 is not None: 
         df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
     if source is not None:
