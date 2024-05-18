@@ -1095,26 +1095,42 @@ def suggestions(query):
 
 ## Retreive themes 
 def extract_topics():
-    # Initialize an empty set to store unique topics
     unique_topics = set()
-    for prediction in df_other['prediction']:
-        # Split the prediction string by commas and remove empty elements
+    for prediction in df_other['topic']:
         if isinstance(prediction, str):
-            topics = [topic.strip().replace("_pred", "") for topic in prediction.split(',') if topic.strip()]
-            # Add each topic to the set of unique topics
+            topics = [topic.strip() for topic in prediction.split(',') if topic.strip()]
             unique_topics.update(topics)
-    # Convert the set to a list and jsonify the result
     return jsonify(list(unique_topics))
 
-### Searching Form treatement
-def json_entity_dates_searchs(selectedEntities, firstDate, lastDate):
+def filter_data_entity(selectedEntities, firstDate=None, lastDate=None):
+    # Ensure the 'entity' column is string type and fill NaN with an empty string
+    df_complete['entity'] = df_complete['entity'].astype(str).fillna('')
 
-    return jsonify(selectedEntities)
+    # Filter by entities case-insensitively
+    entity_filter = df_complete['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
+    filtered_df = df_complete[entity_filter]
+
+    # Filter by date range if provided
+    if firstDate and lastDate:
+        filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
+
+    filtered_df = filtered_df.drop_duplicates(subset='id1')
+    return filtered_df
+
+def filter_data_topic(topic, firstDate=None, lastDate=None):
+    df_other['topic'] = df_other['topic'].astype(str).fillna('')
+    topic_filter = df_other['topic'].str.contains(topic, case=False, na=False)
+    filtered_df = df_other[topic_filter]
+    filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
+    if firstDate and lastDate:
+        filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
+
+    # Resample by month
+    filtered_df['date1'] = filtered_df['date1'].dt.to_period('M')
+
+    return filtered_df
 
 
-def json_topic_dates_searchs(firstDate, lastDate, topic):
-
-    return jsonify(topic)
 
 
 def json_entity_topic_dates_searchs(selectedEntities,firstDate,lastDate,topic):
