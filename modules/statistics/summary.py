@@ -262,18 +262,9 @@ def total_claim_review():
 def get_dates():
     min1 = pandas.to_datetime(df_complete['date1'].dropna(), errors='coerce').min()
     max1 = pandas.to_datetime(df_complete['date1'].dropna(), errors='coerce').max()
-    min2 = pandas.to_datetime(df_complete['date2'].dropna(), errors='coerce').min()
-    max2 = pandas.to_datetime(df_complete['date2'].dropna(), errors='coerce').max()
-
-    # min1 = pd.to_datetime(min1.dt.strftime('%B %d, %Y'))
     min1 = min1.strftime('%B %d, %Y')
-    # print(min1)
     max1 = max1.strftime('%B %d, %Y')
-    # min2 = min2.strftime('%B %d, %Y')
-    # min2 = min2.strftime('%B %d, %Y')
-    # max2 = max2.strftime('%B %d, %Y')
-
-    return min1, max1, min2, max2
+    return min1, max1
 
 
 def claim_with_dates():
@@ -321,7 +312,7 @@ def list_numbers_resume():
     list_numbers_res = []
     claims = "Numbers of claims : " + str(total[0])
     claims_review = "Numbers of claims review : " + str(total_claim_review())
-    dates = "Since " + str(get_dates()[2]) + " to " + str(get_dates()[1])
+    dates = "Since " + str(get_dates()[1]) + " to " + str(get_dates()[0])
     author = "Numbers of authors : " + str(numbers_of_author())
     entities = "Numbers of entities : " + str(numbers_of_entities())
     keywords = "Numbers of keywords : " + str(numbers_keywords())
@@ -347,7 +338,7 @@ def dico_numbers_resume():
     list = [
         {"Numbers of claims ": str(total[0]),
          "Numbers of claims review ": str(total_claim_review()),
-         "Since ": str(get_dates()[2]), "to ": str(get_dates()[1]),
+         "Since ": str(get_dates()[0]), "to ": str(get_dates()[1]),
          #"Numbers of authors ": str(numbers_of_author()),
          "Numbers of entities ": str(numbers_of_entities()),
          #"Numbers of keywords ": str(numbers_keywords())
@@ -1092,6 +1083,33 @@ def suggestions(query):
         current_app.logger.error(f'Error processing request: {str(e)}')
         return jsonify(error=str(e)), 500
     
+def suggestionsEntityTopic(query,topic):
+    try:
+        # Normalize case and filter entries
+        df_other['topic'] = df_other['topic'].astype(str).fillna('')
+        topic_filter = df_other['topic'].str.contains(topic, case=False, na=False)
+        filtered_df = df_other[topic_filter]
+        suggestions = filtered_df[filtered_df['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
+        suggestions_lower = suggestions.str.lower()
+        # Count occurrences and filter
+        entity_counts = suggestions_lower.value_counts()
+        # Filter original DataFrame for entities that appear 3 or more times
+        frequent_entities = entity_counts[entity_counts >= 3]
+        # Sort entities by count (descending) and length of entity name (ascending)
+        frequent_entities_sorted = sorted(frequent_entities.items(), key=lambda x: (-x[1], len(x[0])))
+        # Check if the normalized query exists in the frequent entities and prioritize it
+        normalized_query = query.lower()
+        result = [entity[0] for entity in frequent_entities_sorted]
+        # If the query exists in the results, prioritize it
+        if normalized_query in result:
+            # Move the query to the front of the list
+            result.insert(0, result.pop(result.index(normalized_query)))
+        print(result)  # Debugging
+        return jsonify(result)
+
+    except Exception as e:
+        current_app.logger.error(f'Error processing request: {str(e)}')
+        return jsonify(error=str(e)), 500
 
 ## Retreive themes 
 def extract_topics():
@@ -1130,10 +1148,23 @@ def filter_data_topic(topic, firstDate=None, lastDate=None):
 
     return filtered_df
 
+def filter_data_topic_entity(selectedEntities, topic, firstDate=None, lastDate=None):
+    df_other['entity'] = df_other['entity'].astype(str).fillna('')
 
+    # Filter by entities case-insensitively
+    entity_filter = df_other['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
+    filtered_df = df_other[entity_filter]
 
+    filtered_df['topic'] = filtered_df['topic'].astype(str).fillna('')
+    topic_filter = filtered_df['topic'].str.contains(topic, case=False, na=False)
+    filtered_df = filtered_df[topic_filter]
 
-def json_entity_topic_dates_searchs(selectedEntities,firstDate,lastDate,topic):
-    
-    return jsonify(selectedEntities)
+    filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
+    if firstDate and lastDate:
+        filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
+
+    # Resample by month
+    filtered_df['date1'] = filtered_df['date1'].dt.to_period('M')
+
+    return filtered_df
 

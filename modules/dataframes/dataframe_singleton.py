@@ -19,6 +19,9 @@ df_Source_labelMIXTURE = pandas.read_csv('modules/df_Source_labelMIXTURE.csv',
                                          dtype={"id1": str, "id2": str, "entity": str}, header=0)
 
 
-file_path = (base_path / "df_other.tsv").resolve()
-df_other = pandas.read_csv(file_path, delimiter='\t', header=0)
+file_path_df_other = (base_path / "df_other.tsv").resolve()
+df_other = pandas.read_csv(file_path_df_other, delimiter='\t', header=0)
 
+# Ensure entity column values are strings and handle NaN values
+df_other['entity'] = df_other['entity'].fillna('').astype(str)
+df_other['entity'] = df_other['entity'].apply(lambda x: x.split('/')[-1].replace('_', ' ') if isinstance(x, str) and x else '')
