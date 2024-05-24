@@ -18,14 +18,10 @@ df_Source_labelOTHER = pandas.read_csv('modules/df_Source_labelOTHER.csv',
 df_Source_labelMIXTURE = pandas.read_csv('modules/df_Source_labelMIXTURE.csv',
                                          dtype={"id1": str, "id2": str, "entity": str}, header=0)
 
-pandas.set_option('display.max_colwidth', None)
-pandas.set_option('display.max_columns', None)
-base_path = Path(__file__).parent.parent
-file_path = (base_path / "df_other.tsv").resolve()
-df_other = pandas.read_csv(file_path, delimiter='\t', header=0)
 
-file_path = (base_path / "df_entity_claims.tsv").resolve()
-df_entity = pandas.read_csv(file_path, delimiter='\t', header=0)
+file_path_df_other = (base_path / "df_other.tsv").resolve()
+df_other = pandas.read_csv(file_path_df_other, delimiter='\t', header=0)
 
-df_merged = df_other.merge(df_entity, how='left', left_on='Unnamed: 0', right_on='index')
-print("fait")
+# Ensure entity column values are strings and handle NaN values
+df_other['entity'] = df_other['entity'].fillna('').astype(str)
+df_other['entity'] = df_other['entity'].apply(lambda x: x.split('/')[-1].replace('_', ' ') if isinstance(x, str) and x else '')

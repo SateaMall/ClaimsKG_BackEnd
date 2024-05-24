@@ -1,8 +1,9 @@
-from flask import Flask, request
+from flask import Flask, jsonify, request
+import langcodes
 from markupsafe import Markup
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import extract_topics, json_entity_topic_dates_searchs, json_topic_dates_searchs
+from modules.statistics.summary import extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic
 from modules.statistics.summary import json_per_source_label, suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -21,7 +22,6 @@ from modules.statistics.summary import json_per_source_label_false
 from modules.statistics.summary import json_per_source_label_mixture
 from modules.statistics.summary import json_per_source_label_other
 from modules.statistics.summary import list_resume_born_per_date_label
-from modules.statistics.summary import json_entity_dates_searchs
 from modules.statistics.summary import list_resume_claims_per_source_label
 from modules.statistics.summary import list_resume_borne_date1_date2
 from modules.statistics.summary import list_resume_borne_source
@@ -228,30 +228,170 @@ def suggestions_entity():
     query = request.args.get('query')
     return suggestions(query)
 
-### Infos for the search form 
-@app.route('/search-entity-topic', methods=['GET'])
-def search_entity_topic():
+### get suggestions for entity-topic search auto completion
+@app.route('/suggestions-topic', methods=['GET'])
+def suggestions_entity_topic():
+    query = request.args.get('query')
+    topic = request.args.get('topic')
+    return suggestionsEntityTopic(query,topic)
+
+
+
+
+@app.route('/search-entity1', methods=['GET'])
+def search_entity1():
+    selectedEntities = request.args.getlist('selectedEntities')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
+    grouped_df = filtered_df.groupby(['date1', 'label']).size().reset_index(name='counts')
+    grouped_df['date1'] = grouped_df['date1'].astype(str)
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+### Search form (Entity)
+@app.route('/search-entity2', methods=['GET'])
+def search_entity2():
+    selectedEntities = request.args.getlist('selectedEntities')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
+    grouped_df = filtered_df.groupby('label').size().reset_index(name='counts')
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+@app.route('/search-entity3', methods=['GET'])
+def search_entity3():
+    selectedEntities = request.args.getlist('selectedEntities')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
+    grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+@app.route('/search-entity4', methods=['GET'])
+def search_entity4():
+    selectedEntities = request.args.getlist('selectedEntities')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
+     # Convert language codes to full language names
+    filtered_df['reviewBodyLang'] = filtered_df['reviewBodyLang'].apply(convert_lang_code_to_name)
+    grouped_df = filtered_df.groupby(['reviewBodyLang', 'label']).size().reset_index(name='counts')
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+def convert_lang_code_to_name(lang_code):
+    try:
+        return langcodes.Language.get(lang_code).display_name()
+    except:
+        return lang_code
+
+
+
+### ### Search form (Topic)
+@app.route('/search-topic1', methods=['GET'])
+def search_topic1():
+    topic = request.args.get('topic')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_topic(topic, firstDate, lastDate)
+    grouped_df = filtered_df.groupby(['date1', 'label']).size().reset_index(name='counts')
+    grouped_df['date1'] = grouped_df['date1'].astype(str)
+    grouped_df['label'] = grouped_df['label'].str.upper()
+    grouped_df['total'] = grouped_df.groupby('date1')['counts'].transform('sum')
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+
+@app.route('/search-topic2', methods=['GET'])
+def search_topic2():
+    topic = request.args.get('topic')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_topic(topic, firstDate, lastDate)
+    grouped_df = filtered_df.groupby('label').size().reset_index(name='counts')
+    grouped_df['label'] = grouped_df['label'].str.upper()
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+@app.route('/search-topic3', methods=['GET'])
+def search_topic3():
+    topic = request.args.get('topic')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_topic(topic, firstDate, lastDate)
+    grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
+    grouped_df['label'] = grouped_df['label'].str.upper()
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
+
+@app.route('/search-topic4', methods=['GET'])
+def search_topic4():
+    topic = request.args.get('topic')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df = filter_data_topic(topic, firstDate, lastDate)
+  # Group by entity and count occurrences, then get the top 50 entities
+    top_entities_df = (
+        filtered_df['entity']
+        .value_counts()
+        .reset_index(name='counts')
+        .rename(columns={'index': 'entity'})
+        .head(50)
+    )
+
+    data = top_entities_df.to_dict(orient='records')
+    return jsonify(data)
+
+
+
+
+### ### Search form (Topic-Entity)
+@app.route('/search-topic-entity1', methods=['GET'])
+def search_entity_topic1():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     topic = request.args.get('topic')
-    return json_entity_topic_dates_searchs(selectedEntities,firstDate,lastDate,topic)
+    filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
+    grouped_df = filtered_df.groupby(['date1', 'label']).size().reset_index(name='counts')
+    grouped_df['date1'] = grouped_df['date1'].astype(str)
+    grouped_df['label'] = grouped_df['label'].str.upper()
+    grouped_df['total'] = grouped_df.groupby('date1')['counts'].transform('sum')
+    data = grouped_df.to_dict(orient='records')
+    return jsonify(data)
 
-### Infos for the search form 
-@app.route('/search-entity', methods=['GET'])
-def search_entity():
+
+@app.route('/search-topic-entity2', methods=['GET'])
+def search_entity_topic2():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    return json_entity_dates_searchs(selectedEntities,firstDate,lastDate)
-
-### Infos for the search form 
-@app.route('/search-topic', methods=['GET'])
-def search_topic():
     topic = request.args.get('topic')
+    filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
+    grouped_df = filtered_df.groupby('label').size().reset_index(name='counts')
+    grouped_df['label'] = grouped_df['label'].str.upper()
+    data = grouped_df.to_dict(orient='records')
+
+    return jsonify(data)
+
+
+@app.route('/search-topic-entity3', methods=['GET'])
+def search_entity_topic3():
+    selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    return json_topic_dates_searchs(firstDate, lastDate, topic)
+    topic = request.args.get('topic')
+    filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
+    grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
+    grouped_df['label'] = grouped_df['label'].str.upper()
+    data = grouped_df.to_dict(orient='records')
+
+    print (jsonify(data))
+    return jsonify(data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
