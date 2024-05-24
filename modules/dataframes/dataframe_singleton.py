@@ -23,3 +23,9 @@ pandas.set_option('display.max_columns', None)
 base_path = Path(__file__).parent.parent
 file_path = (base_path / "df_other.tsv").resolve()
 df_other = pandas.read_csv(file_path, delimiter='\t', header=0)
+
+file_path = (base_path / "df_entity_claims.tsv").resolve()
+df_entity = pandas.read_csv(file_path, delimiter='\t', header=0)
+
+df_merged = df_other.merge(df_entity, how='left', left_on='Unnamed: 0', right_on='index')
+print("fait")

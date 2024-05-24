@@ -602,10 +602,13 @@ def born_per_source_label(dat1, dat2):
 def born_per_topics_date(date1, date2):
     filtre = df_other['topics'].notna()
     df_filtre = df_other[filtre]
-    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
-    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
+    filtre2 = df_filtre['creativeWork_datePublished'].notna()
+    df_filtre = df_filtre[filtre2]
+    df_filtre['topics'] = df_filtre['topics'].str.replace('"', '')
+    df_filtre['topics'] = df_filtre['topics'].str.replace("'", '')
+    df_filtre['topics'] = df_filtre['topics'].str.replace('[{}]', '', regex=True)
     df_filtre3 = df_filtre[(df_filtre['creativeWork_datePublished'] >= date1) & (df_filtre['creativeWork_datePublished'] <= date2)]
-    filtre_group_notna = df_filtre3.groupby(['topics'])['topics'].size().reset_index(name='counts')
+    filtre_group_notna = df_filtre3.groupby(['topics', 'creativeWork_datePublished'])['topics'].size().reset_index(name='counts')
     filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
     print(filtre_group_notna)
 
