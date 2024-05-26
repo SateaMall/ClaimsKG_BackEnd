@@ -667,12 +667,14 @@ def filter_data_entity(selectedEntities, firstDate=None, lastDate=None):
     # Filter by entities case-insensitively
     entity_filter = df_complete['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
     filtered_df = df_complete[entity_filter]
-
+    filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
     # Filter by date range if provided
     if firstDate and lastDate:
         filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
 
     filtered_df = filtered_df.drop_duplicates(subset='id1')
+        # Resample by month
+    filtered_df['date1'] = filtered_df['date1'].dt.to_period('M')
     return filtered_df
 
 def filter_data_topic(topic, firstDate=None, lastDate=None):
