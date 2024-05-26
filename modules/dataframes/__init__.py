@@ -127,24 +127,6 @@ def generate_global_dataframe():
                 ?id2 schema:mentions ?linkent1.}
                 ?linkent2 nif:isString ?entity.
                                  """, "distinct ?id1 ?id2 ?entity")
-    
-
-
-    #quauth = SparQLOffsetFetcher(sparql, 10000, prefixes,
-    #                             """
-    #        ?id2 a schema:CreativeWork.
-    #        ?id2 schema:author ?id_author.
-    #        ?id_author a schema:Thing.
-    #        ?id_author schema:name ?author
-    #                             """, "distinct ?id2 ?author")
-
-    #qwords = SparQLOffsetFetcher(sparql, 10000, prefixes,
-    #                             """
-    #                ?id2 a schema:CreativeWork.
-    #                ?id2 schema:keywords ?keywords.
-    #                             """, "distinct ?id2 ?keywords")
-
-    
 
     qulabel = SparQLOffsetFetcher(sparql, 10000, prefixes,
                                   """
@@ -168,13 +150,6 @@ def generate_global_dataframe():
                     schema:reviewBody ?reviewBody.
                     Bind(lang(?reviewBody) AS ?reviewBodyLang)
                                 """, "distinct ?id1 ?reviewBodyLang")
-
-    #qudates_cw = SparQLOffsetFetcher(sparql, 10000, prefixes,
-    #                                 """
-    #                ?id1 a schema:ClaimReview.
-    #                ?id1 schema:itemReviewed ?id2.
-    #                ?id2 schema:datePublished ?date2.
-    #                                 """, "distinct ?id1 ?id2 ?date2")
 
     qusources = SparQLOffsetFetcher(sparql, 10000, prefixes,
                                     """
