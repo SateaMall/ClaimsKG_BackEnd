@@ -44,37 +44,26 @@ def numbers_of_entities():
 
 ############################################################    FONCTION GRAPHE SIMPLE  #####################################################################
 
+#fonction du troisieme graphe
 def claims_per_source_label():
     filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
     filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
-
-    # Perform another groupby on the result
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
 
 
+#fonction deuxieme graphe
 def number_entity():
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre] 
     filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
     return filtre_group_notna
 
-
-def claims_topics():
-    filtre = df_other['topics'].notna()
-    df_filtre = df_other[filtre]
-    df_filtre['topics_count'] = df_filtre['topics'].apply(lambda x: len(eval(x)))
-    df_filtre = df_filtre[df_filtre['topics_count'] >= 2].reset_index(drop=True)
-    filtre_group_notna = df_filtre.groupby(['topics'])['topics'].size().reset_index(name='counts')
-
-    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
-
-    return filtre_group_notna_sorted
-
+#sert mais je ne sais pas a quoi
 def number_entity2():
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
@@ -84,43 +73,73 @@ def number_entity2():
 
     print(filtre_group_notna)
     return filtre_group_notna
+
 ##############################################################################################################################################
 
 
-######################################################################  FONTION SUMMARY ###########################################################################
+######################################################################  FONTION SUMMARY et FILTRAGE  ###########################################################################
 
 
-def number_label_false(dat1, dat2):
-    df_filtre = df_Source_labelFALSE
-    if dat1 is not None: 
-        df_filtre = df_Source_labelFALSE[(df_Source_labelFALSE['date1'] >= dat1) & (df_Source_labelFALSE['date1'] <= dat2)]
-    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
+def number_label_false(entity, date1, date2):
+    df_filtre = df_complete
+    df_filtre = df_filtre[(df_filtre['label'] == 'FALSE')]
 
-def number_label_true(dat1, dat2):
-    df_filtre = df_Source_labelTRUE
-    if dat1 is not None: 
-        df_filtre = df_Source_labelTRUE[(df_Source_labelTRUE['date1'] >= dat1) & (df_Source_labelTRUE['date1'] <= dat2)]
-    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
+        else:
+            df_filtre = df_filtre[(df_filtre['entity'] == entity)]     
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
 
-def number_label_mixture(dat1, dat2):
-    df_filtre = df_Source_labelMIXTURE
-    if dat1 is not None: 
-        df_filtre = df_Source_labelMIXTURE[(df_Source_labelMIXTURE['date1'] >= dat1) & (df_Source_labelMIXTURE['date1'] <= dat2)]
-    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
 
-def number_label_other(dat1, dat2):
-    df_filtre = df_Source_labelOTHER
-    if dat1 is not None: 
-        df_filtre = df_Source_labelOTHER[(df_Source_labelOTHER['date1'] >= dat1) & (df_Source_labelOTHER['date1'] <= dat2)]
-    counts = df_filtre.groupby(['id1']).size().reset_index(name='counts')['counts']
-    print(counts)
-    return counts
+def number_label_true(entity, date1, date2):
+    df_filtre = df_complete
+    df_filtre = df_filtre[(df_filtre['label'] == 'TRUE')]
+
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
+        else:
+            df_filtre = df_filtre[(df_filtre['entity'] == entity)]     
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
+
+
+def number_label_mixture(entity, date1, date2):
+    df_filtre = df_complete
+    df_filtre = df_filtre[(df_filtre['label'] == 'MIXTURE')]
+
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
+        else:
+            df_filtre = df_filtre[(df_filtre['entity'] == entity)]     
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
+
+def number_label_other(entity, date1, date2):
+    df_filtre = df_complete
+    df_filtre = df_filtre[(df_filtre['label'] == 'OTHER')]
+
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
+        else:
+            df_filtre = df_filtre[(df_filtre['entity'] == entity)]     
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
 
 ###########################################################################################################################################################
 
@@ -128,7 +147,7 @@ def number_label_other(dat1, dat2):
 
 ##############################################################  FONCTION AVEC PARAMETRE #############################################################################
 
-
+#fonction filtrage graphe 2 dashboard
 def borne_entity(entity, dat1, dat2):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
@@ -170,15 +189,25 @@ def born_langue_per_label(dat1,dat2):
 
     return final_grouped
 
-def born_per_source_label(dat1, dat2):
+#fonction filtrage graphe 3 dashboard
+def born_per_source_label(entity, dat1, dat2):
     filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
-    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
-    filtre_group_notna = df_filtre3.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
+    filtre3 = df_filtre2['entity'].notna()
+    df_filtre3 = df_filtre2[filtre3]
+    filtre4 = df_filtre3['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre3['date1'].notna()
+    df_filtre3 = df_filtre3[filtre4]
 
-    # Perform another groupby on the result
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
+        else:
+            df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
+    df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
+
+    filtre_group_notna = df_filtre3.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
@@ -198,11 +227,21 @@ def born_per_topics_date(date1, date2):
 
     return filtre_group_notna_sorted
 
-def born_per_date_label(date1, date2, granularite):
+
+#fonction filtrage graphe 1 dashboard
+def born_per_date_label(entity, date1, date2, granularite):
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre3 = df_filtre[filtre2]
+    filtre3 = df_filtre3['entity'].notna()
+    df_filtre3 = df_filtre3[filtre3]
+
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
+        else:
+            df_filtre3 = df_filtre3[(df_filtre3['entity'] == entity)]
     if date1 is not None :
         df_filtre3 = df_filtre3[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
     if(granularite=="annee"):
@@ -217,18 +256,26 @@ def born_per_date_label(date1, date2, granularite):
 
     return final_grouped
 
-
-def langue_per_label(dat1, dat2):
+#fonction filtrage quatrieme graphe dashboard
+def langue_per_label(entity, dat1, dat2):
 
     filtre = df_complete['reviewBodyLang'].notna()
     df_filtre = df_complete[filtre] 
     filtre2 = df_filtre['label'].notna()
     df_filtre2 = df_filtre[filtre2]
+    filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
+    df_filtre2 = df_filtre2[filtre3]
+    filtre4 = df_filtre2['entity'].notna()
+    df_filtre2 = df_filtre2[filtre4]
+
+    if entity is not None:
+        if isinstance(entity, list):
+            df_filtre2 = df_filtre2[df_filtre2['entity'].isin(entity)]
+        else:
+            df_filtre2 = df_filtre2[(df_filtre2['entity'] == entity)]
     if dat1 is not None: 
-        filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
-        df_filtre2 = df_filtre2[filtre3]
         df_filtre2 = df_filtre2[(df_filtre['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
-    #filtre_group_notna = df_filtre2.groupby(['id1'])['id1']
+
     filtre_group_notna = df_filtre2.groupby(['id1','reviewBodyLang', 'label'])['reviewBodyLang'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
 
@@ -389,6 +436,8 @@ def dico_numbers_resume():
 
 ########################################################################## JSON FONCTION SIMPLE ############################################################################
 
+
+# json du troisieme graphe
 def list_resume_claims_per_source_label():
 
     call_function = claims_per_source_label()
@@ -399,20 +448,21 @@ def list_resume_claims_per_source_label():
     return json_format
 
 
-
+#json deuxieme graphe 
 def entity():
 
-    claims_per_dat_label = number_entity()
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
+    call_function = number_entity()
+    parsed_data = call_function.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  
  
     return json_data
 
+#sert mais je ne sais pas a quoi
 def entity2():
 
-    claims_per_dat_label = number_entity2()
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
+    call_function = number_entity2()
+    parsed_data = call_function.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data) 
  
@@ -427,32 +477,33 @@ def entity2():
 
 
 
-###########################################################################   JSON SUMMARY    ###########################################################################
+###########################################################################   JSON SUMMARY et FILTRAGE    ###########################################################################
 
 
 
-def json_number_false(date1, date2):
-    taille = len(number_label_false(date1, date2))
-    return ( {
-    "counts": str(taille)
+def json_number_false(entity, date1, date2):
+   
+   return ( {
+    "counts": str(number_label_false(entity, date1, date2))
     })
 
-def json_number_true(date1, date2):
+
+def json_number_true(entity, date1, date2):
 
     return ( {
-    "counts": str(len(number_label_true(date1, date2)))
+    "counts": str(number_label_true(entity, date1, date2))
     })
 
-def json_number_mixture(date1, date2):
+def json_number_mixture(entity, date1, date2):
 
     return ( {
-    "counts": str(len(number_label_mixture(date1, date2)))
+    "counts": str(number_label_mixture(entity, date1, date2))
     })
 
-def json_number_other(date1, date2):
+def json_number_other(entity, date1, date2):
 
-    return ( {
-    "counts": str(len(number_label_other(date1, date2)))
+   return ( {
+    "counts": str(number_label_other(entity, date1, date2))
     })
 
 
@@ -475,23 +526,12 @@ def json_number_other(date1, date2):
 
 def list_resume_borne_source(source):
 
-    claims_per_dat_label = born_source(source)
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
+    call_function = born_source(source)
+    parsed_data = call_function.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)  
 
     return json_data
-
-
-def list_resume_claims_per_topics():
-
-    claims_per_dat_label = claims_topics()
-    parsed_data = claims_per_dat_label.to_dict(orient='records')
-
-
-    json_data = json.dumps(parsed_data) 
-
-    return parsed_data
  
 
 import ast
@@ -507,28 +547,11 @@ def string_to_set(string):
     # Sinon, retourner une liste vide
     return []
 
-print(string_to_set("{'a','b'}"))
+#JSON fonction filtrage quatrieme dashboard 
+def list_resume_claims_per_langues(entity, date1 ,date2):
 
-def list_resume_claims_per_topics2():
-    number_entity_fetch = claims_topics()
-    data_length= len(number_entity_fetch)
-    list = []
-
-    for i in range(data_length):
-        list.append( {
-        "topics": string_to_set(number_entity_fetch['topics'][i]),
-        "counts": str(number_entity_fetch['counts'][i])
-        })
-
-    list_json = json.dumps(list)
-    # print(list_json)
-    return list_json
-
-
-def list_resume_claims_per_langues(date1 ,date2):
-
-    claims_per_langue_label = langue_per_label(date1, date2)
-    parsed_data = claims_per_langue_label.to_dict(orient='records')
+    function_call = langue_per_label(entity, date1, date2)
+    parsed_data = function_call.to_dict(orient='records')
 
     for item in parsed_data:
         language_code = item['reviewBodyLang']  
@@ -539,7 +562,8 @@ def list_resume_claims_per_langues(date1 ,date2):
 
     return json_data
 
-def list_resume_borne_date1_date2_entity(entity, date1, date2):  #faire comme pour la fonction "list_resume_borne_source" pour recupérer par ici ce qu'on veut (j'ai mis en brut pour tester)
+#JSON de la fonction de filtrage du graphe 2 du dashboard
+def list_resume_borne_date1_date2_entity(entity, date1, date2):  
 
     claims_per_dat_label = borne_entity(entity, date1, date2)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
@@ -563,10 +587,10 @@ def list_resume_born_claims_per_langues(dat1,dat2):
 
     return json_data
 
+#JSON fonction filtrage graphe 3 dashboard
+def list_resume_born_source_label(entity, dat1, dat2):
 
-def list_resume_born_source_label(dat1,dat2):
-
-    claims_per_langue_label = born_per_source_label(dat1,dat2)
+    claims_per_langue_label = born_per_source_label(entity, dat1, dat2)
     parsed_data = claims_per_langue_label.to_dict(orient='records')
 
     json_data = json.dumps(parsed_data)
@@ -582,10 +606,10 @@ def list_resume_born_topics(dat1, dat2):
 
     return json_data
 
+#JSON filtrage  graphe 1
+def list_resume_born_per_date_label(entity, dat1, dat2, granularite):
 
-def list_resume_born_per_date_label(dat1, dat2, granularite):
-
-    claims_per_dat_label = born_per_date_label(dat1, dat2, granularite)
+    claims_per_dat_label = born_per_date_label(entity, dat1, dat2, granularite)
     parsed_data = claims_per_dat_label.to_dict(orient='records')
 
     json_data= json.dumps(parsed_data)
