@@ -1,10 +1,11 @@
 import json
+from typing import Counter
 
 from flask import current_app, jsonify
 import pandas
 
 from langcodes import Language
-
+from itertools import combinations
 from modules.dataframes.dataframe_singleton import df_complete
 from modules.dataframes.dataframe_singleton import df_other
 from modules.dataframes.dataframe_singleton import df_Source_labelFALSE
@@ -593,7 +594,40 @@ def list_resume_born_per_date_label(dat1, dat2, granularite):
 
 
 #########################################################################################################################################################################
+def common_categories():
+    df_other_cleaned = df_other.dropna(subset=['topic'])
+    df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
+    df_filtered = df_other_cleaned[df_other_cleaned['topic'].str.contains(",")]
+    topic_counts = Counter(df_filtered['topic'])
+    top_topics = topic_counts.most_common(40)
+    
+    # Convert to a list of dictionaries for easier JSON response
+    top_topics_list = [{'topic': category, 'count': count} for category, count in top_topics]
+    
+    return top_topics_list
 
+
+
+def create_graph_data():
+    data = common_categories()
+    nodes_set = set()
+    edges = []
+    
+    for entry in data:
+        topics = entry["topic"].split(", ")
+        count = entry["count"]
+        for topic in topics:
+            nodes_set.add(topic)
+        
+        # Create edges for all combinations of topics (for 2 to 5 topics)
+        if 2 <= len(topics):
+            for combo in combinations(topics, 2):
+                edges.append({"from": combo[0], "to": combo[1], "weight": count})
+
+    nodes = [{"id": idx + 1, "label": node} for idx, node in enumerate(nodes_set)]
+    nodes_map = {node['label']: node['id'] for node in nodes}
+    edges_mapped = [{"from": nodes_map[edge["from"]], "to": nodes_map[edge["to"]], "value": edge["weight"]} for edge in edges]
+    return nodes, edges_mapped
 
 ### Suggestions for the searching part 
 

@@ -3,7 +3,7 @@ import langcodes
 from markupsafe import Markup
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic
+from modules.statistics.summary import common_categories, create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic
 from modules.statistics.summary import suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -175,7 +175,20 @@ def born_per_entite_source_filtre_date(entity=None, source=None, date1= None, da
         list_entity = [] 
     return list_resume_entite_per_source_filtre_per_date(list_entity, source, date1, date2)
 
+
+
 ##################################################################################################################
+@app.route('/top-topics')
+def top_categories():
+    return jsonify(common_categories())
+
+@app.route('/graph-data')
+def graph_data():
+    nodes, edges = create_graph_data()
+    return jsonify({"nodes": nodes, "edges": edges})
+
+
+
 
 # fonction home page
 @app.route ("/resume")
