@@ -108,6 +108,7 @@ def json_per_source_label():
 @app.route("/json_per_date1_label")
 @app.route("/json_per_date1_label/<date1>/<date2>")
 @app.route("/json_per_date1_label/<date1>/<date2>\<granularite>")
+@app.route("/json_per_date1_label/<entity>/<date1>/<date2>")
 @app.route("/json_per_date1_label/<entity>/<date1>/<date2>/<granularite>")
 def json_filter_date(entity=None, date1=None, date2=None, granularite=None):
     if entity is not None:
@@ -149,9 +150,10 @@ def json_born_entity_date(entity=None, date1=None, date2=None):
 
 #fonction filtrage quatrieme graphe dashbord
 @app.route("/json_per_langue_label")
+@app.route("/json_per_langue_label/<entity>")
 @app.route("/json_per_langue_label/<date1>/<date2>")
 @app.route("/json_per_langue_label/<entity>/<date1>/<date2>")
-def json_langue_label(entity, date1=None, date2=None):
+def json_langue_label(entity=None, date1=None, date2=None):
     if entity is not None:
         list_entity = entity.split(',')
     else:

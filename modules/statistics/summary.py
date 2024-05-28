@@ -84,7 +84,7 @@ def number_label_false(entity, date1, date2):
     df_filtre = df_complete
     df_filtre = df_filtre[(df_filtre['label'] == 'FALSE')]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
         else:
@@ -99,7 +99,7 @@ def number_label_true(entity, date1, date2):
     df_filtre = df_complete
     df_filtre = df_filtre[(df_filtre['label'] == 'TRUE')]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
         else:
@@ -115,7 +115,7 @@ def number_label_mixture(entity, date1, date2):
     df_filtre = df_complete
     df_filtre = df_filtre[(df_filtre['label'] == 'MIXTURE')]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
         else:
@@ -130,7 +130,7 @@ def number_label_other(entity, date1, date2):
     df_filtre = df_complete
     df_filtre = df_filtre[(df_filtre['label'] == 'OTHER')]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre = df_filtre[df_filtre['entity'].isin(entity)]
         else:
@@ -152,7 +152,7 @@ def borne_entity(entity, dat1, dat2):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre = df_filtre[~df_filtre['entity'].isin(entity)]
         else:
@@ -200,7 +200,7 @@ def born_per_source_label(entity, dat1, dat2):
     filtre4 = df_filtre3['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre3['date1'].notna()
     df_filtre3 = df_filtre3[filtre4]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
         else:
@@ -237,7 +237,7 @@ def born_per_date_label(entity, date1, date2, granularite):
     filtre3 = df_filtre3['entity'].notna()
     df_filtre3 = df_filtre3[filtre3]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre3 = df_filtre3[df_filtre3['entity'].isin(entity)]
         else:
@@ -268,7 +268,7 @@ def langue_per_label(entity, dat1, dat2):
     filtre4 = df_filtre2['entity'].notna()
     df_filtre2 = df_filtre2[filtre4]
 
-    if entity is not None:
+    if entity != []:
         if isinstance(entity, list):
             df_filtre2 = df_filtre2[df_filtre2['entity'].isin(entity)]
         else:
