@@ -105,12 +105,12 @@ def json_per_source_label():
 
 
 #fonction du premier graphe dashboard filtre
-@app.route("/json_per_date1_label")
-@app.route("/json_per_date1_label/<date1>/<date2>")
-@app.route("/json_per_date1_label/<date1>/<date2>\<granularite>")
-@app.route("/json_per_date1_label/<entity>/<date1>/<date2>")
-@app.route("/json_per_date1_label/<entity>/<date1>/<date2>/<granularite>")
+@app.route("/json_per_date1_label",methods=['GET'])
 def json_filter_date(entity=None, date1=None, date2=None, granularite=None):
+    entity = request.args.get('entity')
+    date1 = request.args.get('date1')
+    date2 = request.args.get('date2')
+    granularite = request.args.get('granularite')
     if entity is not None:
         list_entity = entity.split(',')
     else:
