@@ -625,7 +625,7 @@ def common_categories():
     df_other_cleaned = df_other_cleaned[df_other_cleaned['topic'] != '']
 
     topic_counts = Counter(df_other_cleaned['topic'])
-    top_topics = topic_counts.most_common(65)
+    top_topics = topic_counts.most_common(60)
     # Convert to a list of dictionaries for easier JSON response
     top_topics_list = [{'topic': category, 'count': count} for category, count in top_topics]
 
