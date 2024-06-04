@@ -145,7 +145,6 @@ def generate_global_dataframe():
     qulang = SparQLOffsetFetcher(sparql, 10000, prefixes,
                                 """
                     ?id1 a schema:ClaimReview;
-                    schema:author ?author;
                     schema:reviewBody ?reviewBody.
                     Bind(lang(?reviewBody) AS ?reviewBodyLang)
                                 """, "distinct ?id1 ?reviewBodyLang")

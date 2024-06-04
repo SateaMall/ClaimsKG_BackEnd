@@ -620,37 +620,42 @@ def list_resume_born_per_date_label(entity, dat1, dat2, granularite):
 #########################################################################################################################################################################
 def common_categories():
     df_other_cleaned = df_other.dropna(subset=['topic'])
+
     df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
-    df_filtered = df_other_cleaned[df_other_cleaned['topic'].str.contains(",")]
-    topic_counts = Counter(df_filtered['topic'])
-    top_topics = topic_counts.most_common(40)
-    
+    df_other_cleaned = df_other_cleaned[df_other_cleaned['topic'] != '']
+
+    topic_counts = Counter(df_other_cleaned['topic'])
+    top_topics = topic_counts.most_common(65)
     # Convert to a list of dictionaries for easier JSON response
     top_topics_list = [{'topic': category, 'count': count} for category, count in top_topics]
-    
+
     return top_topics_list
 
 
 
 def create_graph_data():
     data = common_categories()
-    nodes_set = set()
-    edges = []
-    
+    nodes_dict = {}
+    edges_dict = {}
+
     for entry in data:
         topics = entry["topic"].split(", ")
         count = entry["count"]
         for topic in topics:
-            nodes_set.add(topic)
-        
-        # Create edges for all combinations of topics (for 2 to 5 topics)
-        if 2 <= len(topics):
-            for combo in combinations(topics, 2):
-                edges.append({"from": combo[0], "to": combo[1], "weight": count})
+            if topic not in nodes_dict:
+                nodes_dict[topic] = {"id": len(nodes_dict) + 1, "label": topic, "value": 0}
+            nodes_dict[topic]["value"] += count
 
-    nodes = [{"id": idx + 1, "label": node} for idx, node in enumerate(nodes_set)]
+        if len(topics) >= 2:
+            for combo in combinations(topics, 2):
+                sorted_combo = tuple(sorted(combo))
+                if sorted_combo not in edges_dict:
+                    edges_dict[sorted_combo] = 0
+                edges_dict[sorted_combo] += count
+    nodes = [{"id": node_data["id"], "label": node, "value": node_data["value"]} for node, node_data in nodes_dict.items()]
     nodes_map = {node['label']: node['id'] for node in nodes}
-    edges_mapped = [{"from": nodes_map[edge["from"]], "to": nodes_map[edge["to"]], "value": edge["weight"]} for edge in edges]
+    edges_mapped = [{"from": nodes_map[edge[0]], "to": nodes_map[edge[1]], "value": value} for edge, value in edges_dict.items()]
+
     return nodes, edges_mapped
 
 ### Suggestions for the searching part 

@@ -412,6 +412,9 @@ def search_entity_topic3():
     print (jsonify(data))
     return jsonify(data)
 
+@app.route('/test')
+def test():
+    return common_categories()
 
 if __name__ == '__main__':
     app.run(debug=True)
