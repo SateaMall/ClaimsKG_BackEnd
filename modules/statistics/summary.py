@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 from typing import Counter
 
@@ -211,22 +212,25 @@ def born_per_source_label(entity, dat1, dat2):
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
+def format_entity(entity):
+    return f"http://dbpedia.org/resource/{entity.replace(' ', '_')}"
 
-def born_per_topics_date(date1, date2):
-    filtre = df_other['topics'].notna()
-    df_filtre = df_other[filtre]
-    filtre2 = df_filtre['creativeWork_datePublished'].notna()
-    df_filtre = df_filtre[filtre2]
-    df_filtre['topics'] = df_filtre['topics'].str.replace('"', '')
-    df_filtre['topics'] = df_filtre['topics'].str.replace("'", '')
-    df_filtre['topics'] = df_filtre['topics'].str.replace('[{}]', '', regex=True)
-    df_filtre3 = df_filtre[(df_filtre['creativeWork_datePublished'] >= date1) & (df_filtre['creativeWork_datePublished'] <= date2)]
-    filtre_group_notna = df_filtre3.groupby(['topics', 'creativeWork_datePublished'])['topics'].size().reset_index(name='counts')
-    filtre_group_notna_sorted = filtre_group_notna.sort_values(by='counts', ascending=False)
-    print(filtre_group_notna)
+def born_per_topics_date(entities=None, date1=None, date2=None):
+    df_filtered = df_other.copy()
+    if date1 and date2 :
+        df_filtered['date1'] = pandas.to_datetime(df_filtered['date1'])
 
-    return filtre_group_notna_sorted
+        # Filter by date range
+        mask_date = (df_filtered['date1'] >= date1) & (df_filtered['date1'] <= date2)
+        df_filtered = df_filtered.loc[mask_date]
 
+    # Blacklist claimReview_urls if entity is not in the entities list
+    if entities:
+        entity_list = [format_entity(entity) for entity in entities.split(',')]
+        blacklist = df_filtered[~df_filtered['entity'].apply(lambda x: any(e in x for e in entity_list))]['claimReview_url'].unique()
+        df_filtered = df_filtered[~df_filtered['claimReview_url'].isin(blacklist)]
+
+    return df_filtered
 
 #fonction filtrage graphe 1 dashboard
 def born_per_date_label(entity, date1, date2, granularite):
@@ -418,7 +422,23 @@ def list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2):
 
     return json_format
 
+def list_resume_born_topics(entities=None, date1=None, date2=None):
+    df_filtered = born_per_topics_date(entities, date1, date2)
+    topic_truth_counts = defaultdict(lambda: {'true': 0, 'false': 0, 'mixture': 0, 'other': 0})
+    for _, row in df_filtered.iterrows():
+        topics = [topic.strip() for topic in row['topic'].split(',') if topic.strip()]
+        truth_value = row['label']
+        for topic in topics:
+            if truth_value in topic_truth_counts[topic]:
+                topic_truth_counts[topic][truth_value] += 1
+                
+    # Convert to a list of dictionaries for easier JSON response
+    top_topics_list = [{'topics': topic, **counts} for topic, counts in topic_truth_counts.items()]
 
+    # Sort topics by total counts and select the top N
+    top_topics_list = sorted(top_topics_list, key=lambda x: -(x['true'] + x['false'] + x['mixture'] + x['other']))
+
+    return top_topics_list
 ######################################################################JSON Home Page#####################################
 def dico_numbers_resume():
     total = claims_total()
@@ -598,14 +618,6 @@ def list_resume_born_source_label(entity, dat1, dat2):
     return json_data
 
 
-def list_resume_born_topics(dat1, dat2):
-    claims_per_langue_label = born_per_topics_date(dat1,dat2)
-    parsed_data = claims_per_langue_label.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)
-
-    return json_data
-
 #JSON filtrage  graphe 1
 def list_resume_born_per_date_label(entity, dat1, dat2, granularite):
 
@@ -620,12 +632,11 @@ def list_resume_born_per_date_label(entity, dat1, dat2, granularite):
 #########################################################################################################################################################################
 def common_categories():
     df_other_cleaned = df_other.dropna(subset=['topic'])
-
     df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
-    df_other_cleaned = df_other_cleaned[df_other_cleaned['topic'] != '']
+    df_filtered = df_other_cleaned[df_other_cleaned['topic'].str.contains(",")]
+    topic_counts = Counter(df_filtered['topic'])
+    top_topics = topic_counts.most_common(40)
 
-    topic_counts = Counter(df_other_cleaned['topic'])
-    top_topics = topic_counts.most_common(60)
     # Convert to a list of dictionaries for easier JSON response
     top_topics_list = [{'topic': category, 'count': count} for category, count in top_topics]
 
@@ -633,6 +644,74 @@ def common_categories():
 
 
 
+def create_graph_data():
+    data = common_categories()
+    nodes_set = set()
+    edges = []
+
+    for entry in data:
+        topics = entry["topic"].split(", ")
+        count = entry["count"]
+        for topic in topics:
+            nodes_set.add(topic)
+
+        # Create edges for all combinations of topics (for 2 to 5 topics)
+        if 2 <= len(topics):
+            for combo in combinations(topics, 2):
+                edges.append({"from": combo[0], "to": combo[1], "weight": count})
+
+    nodes = [{"id": idx + 1, "label": node} for idx, node in enumerate(nodes_set)]
+    nodes_map = {node['label']: node['id'] for node in nodes}
+    edges_mapped = [{"from": nodes_map[edge["from"]], "to": nodes_map[edge["to"]], "value": edge["weight"]} for edge in edges]
+    return nodes, edges_mapped
+
+
+def top_categories_separated(nbr_categories=60):
+
+    df_other_cleaned = df_other.dropna(subset=['topic'])
+
+    # Vectorized split and explode
+    df_other_cleaned['topics'] = df_other_cleaned['topic'].str.split(',')
+    df_exploded = df_other_cleaned.explode('topics')
+    df_exploded['topics'] = df_exploded['topics'].str.strip()
+    df_exploded = df_exploded[df_exploded['topics'] != '']
+
+    # Group by topic and truth value, then count occurrences
+    grouped = df_exploded.groupby(['topics', 'label']).size().unstack(fill_value=0)
+    grouped = grouped.rename(columns={col: col.lower() for col in grouped.columns})
+    for label in ['true', 'false', 'mixture', 'other']:
+        if label not in grouped.columns:
+            grouped[label] = 0
+
+    grouped = grouped[['true', 'false', 'mixture', 'other']]
+
+    # Convert to a list of dictionaries
+    top_topics_list = grouped.reset_index().to_dict('records')
+
+    # Sort topics by total counts and select the top N
+    top_topics_list = sorted(top_topics_list, key=lambda x: -(x['true'] + x['false'] + x['mixture'] + x['other']))[:nbr_categories]
+
+    return top_topics_list
+
+'''
+This version returns the weight of every single topic 
+
+
+
+
+def common_categories(nbr_categories=60):
+    df_other_cleaned = df_other.dropna(subset=['topic'])
+
+    df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
+    df_other_cleaned = df_other_cleaned[df_other_cleaned['topic'] != '']
+
+    topic_counts = Counter(df_other_cleaned['topic'])
+    top_topics = topic_counts.most_common(nbr_categories)
+    # Convert to a list of dictionaries for easier JSON response
+    top_topics_list = [{'topic': category, 'count': count} for category, count in top_topics]
+
+    return top_topics_list
+    
 def create_graph_data():
     data = common_categories()
     nodes_dict = {}
@@ -657,7 +736,7 @@ def create_graph_data():
     edges_mapped = [{"from": nodes_map[edge[0]], "to": nodes_map[edge[1]], "value": value} for edge, value in edges_dict.items()]
 
     return nodes, edges_mapped
-
+'''
 ### Suggestions for the searching part 
 
 ## This will return entities that has at least 3 entities prioritizing the most popular entities and the exact entity searched if it exists

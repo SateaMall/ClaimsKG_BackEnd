@@ -3,7 +3,7 @@ import langcodes
 from markupsafe import Markup
 from modules.dataframes import generate_global_dataframe
 from modules.dataframes import generate_per_label_dataframe
-from modules.statistics.summary import common_categories, create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic
+from modules.statistics.summary import create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic, top_categories_separated
 from modules.statistics.summary import suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -163,17 +163,18 @@ def json_langue_label(entity=None, date1=None, date2=None):
 #fonction filtrage graphe 3 dashboard
 @app.route("/json_born_per_source_label/<date1>/<date2>")
 @app.route("/json_born_per_source_label/<entity>/<date1>/<date2>")
-def born_per_source_label(entity, date1, date2):
-    if entity is not None:
+def born_per_source_label(entity=None, date1=None, date2=None):
+    if entity:
         list_entity = entity.split(',')
     else:
         list_entity = [] 
     return list_resume_born_source_label(list_entity, date1, date2)
 
 @app.route("/json_born_per_topics/<date1>/<date2>")
-def born_per_topics(date1, date2):
-    return list_resume_born_topics(date1, date2)
-
+@app.route("/json_born_per_topics/<entity>/<date1>/<date2>")
+def born_per_topics(entity=None, date1=None, date2=None):
+    data = list_resume_born_topics(entity, date1, date2)
+    return jsonify(data)
 ########################################################   Endpoint Recherche  ###########################################################
 
 @app.route("/json_born_entite_label_filtre_date")
@@ -220,11 +221,12 @@ def born_per_entite_source_filtre_date(entity=None, source=None, date1= None, da
 
 
 
+
 #################################################   SEARCH PART    #############################################################
 
-@app.route('/top-topics')
+@app.route('/topics-by-quantity')
 def top_categories():
-    return jsonify(common_categories())
+    return jsonify(top_categories_separated())
 
 @app.route('/graph-data')
 def graph_data():
@@ -365,9 +367,6 @@ def search_topic4():
     data = top_entities_df.to_dict(orient='records')
     return jsonify(data)
 
-
-
-
 ### ### Search form (Topic-Entity)
 @app.route('/search-topic-entity1', methods=['GET'])
 def search_entity_topic1():
@@ -412,9 +411,6 @@ def search_entity_topic3():
     print (jsonify(data))
     return jsonify(data)
 
-@app.route('/test')
-def test():
-    return common_categories()
 
 if __name__ == '__main__':
     app.run(debug=True)
