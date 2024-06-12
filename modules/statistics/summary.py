@@ -21,13 +21,11 @@ from modules.dataframes.dataframe_singleton import df_Source_labelTRUE
 def claims_total():
     nb_cw_total = len(df_complete['id2'].unique())
     nb_cr_total = len(df_complete['id1'].unique())
-    print(nb_cw_total)
     return nb_cw_total, nb_cr_total
 
 
 def total_claim_review():
     nb_cr_total = len(df_complete['id1'].unique())
-    # print(nb_cr_total)
     return nb_cr_total
 
 def get_dates():
@@ -39,13 +37,12 @@ def get_dates():
 
 def numbers_of_entities():
     nb_entities = len(df_complete['entity'].dropna().unique())
-
     return nb_entities
 
 
-############################################################    FONCTION GRAPHE SIMPLE  #####################################################################
+############################################################   GRAPH FUNCTION WITHOUT PARAMETER  #####################################################################
 
-#fonction du troisieme graphe
+#third graph function
 def claims_per_source_label():
     filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
@@ -57,7 +54,7 @@ def claims_per_source_label():
     return final_grouped
 
 
-#fonction deuxieme graphe
+#second graph function
 def number_entity():
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre] 
@@ -72,13 +69,11 @@ def number_entity2():
     filtre_group_notna.columns = ['entity', 'counts']
     filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(50)
 
-    print(filtre_group_notna)
     return filtre_group_notna
 
-##############################################################################################################################################
 
 
-######################################################################  FONTION SUMMARY et FILTRAGE  ###########################################################################
+######################################################################  SUMMARY FUNCTION  ###########################################################################
 
 
 def number_label_false(entity, date1, date2):
@@ -142,13 +137,11 @@ def number_label_other(entity, date1, date2):
     nb_cw_total = len(df_filtre['id1'].unique())
     return nb_cw_total
 
-###########################################################################################################################################################
 
 
+##############################################################  FUNCTION GRAPH WITH PARAMETER   #############################################################################
 
-##############################################################  FONCTION AVEC PARAMETRE #############################################################################
-
-#fonction filtrage graphe 2 dashboard
+#second dashboard graph function with filtered
 def borne_entity(entity, dat1, dat2):
     filtre = df_complete['entity'].notna()
     df_filtre = df_complete[filtre]
@@ -166,31 +159,7 @@ def borne_entity(entity, dat1, dat2):
     return filtre_group_notna.sort_values('counts', ascending=False).head(50)
 
 
-def born_source(source):
-    filtre = df_complete['source'].notna()
-    df_filtre = df_complete[filtre]
-    filtre2 = df_filtre['label'].notna() 
-    df_filtre2 = df_filtre[filtre2]
-    df_filtre3 = df_filtre2[(df_filtre2['source'] == source)]
-
-    filtre_group_notna = df_filtre3.groupby(['source','label'])['source'].size().reset_index(name='counts')
-    
-    return filtre_group_notna
-
-
-def born_langue_per_label(dat1,dat2):
-
-    filtre = df_complete['reviewBodyLang'].notna()
-    df_filtre = df_complete[filtre] 
-    filtre2 = df_filtre['label'].notna()
-    df_filtre2 = df_filtre[filtre2] 
-    df_filtre3 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
-    filtre_group_notna = df_filtre3.groupby(['id1','reviewBodyLang', 'label'])['reviewBodyLang'].size().reset_index(name='counts')
-    final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
-
-    return final_grouped
-
-#fonction filtrage graphe 3 dashboard
+#third dashboard graph function with filtered
 def born_per_source_label(entity, dat1, dat2):
     filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
@@ -212,27 +181,25 @@ def born_per_source_label(entity, dat1, dat2):
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
 
     return final_grouped
+
+#function to change format
 def format_entity(entity):
     return f"http://dbpedia.org/resource/{entity.replace(' ', '_')}"
 
-def born_per_topics_date(entities=None, date1=None, date2=None):
+
+#sixth dashboard graph function with filtered
+def born_per_topics_date(date1=None, date2=None):
     df_filtered = df_other.copy()
-    if date1 and date2 :
+    if date1 and date2 is not None :
         df_filtered['date1'] = pandas.to_datetime(df_filtered['date1'])
 
         # Filter by date range
         mask_date = (df_filtered['date1'] >= date1) & (df_filtered['date1'] <= date2)
         df_filtered = df_filtered.loc[mask_date]
 
-    # Blacklist claimReview_urls if entity is not in the entities list
-    if entities:
-        entity_list = [format_entity(entity) for entity in entities.split(',')]
-        blacklist = df_filtered[~df_filtered['entity'].apply(lambda x: any(e in x for e in entity_list))]['claimReview_url'].unique()
-        df_filtered = df_filtered[~df_filtered['claimReview_url'].isin(blacklist)]
-
     return df_filtered
 
-#fonction filtrage graphe 1 dashboard
+#first dashboard graph function with filtered
 def born_per_date_label(entity, date1, date2, granularite):
     filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
     df_filtre = df_complete[filtre]
@@ -250,7 +217,6 @@ def born_per_date_label(entity, date1, date2, granularite):
         df_filtre3 = df_filtre3[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
     if(granularite=="annee"):
         df_filtre3['date1'] = df_filtre3['date1'].str[:4]
-        print(df_filtre3['date1'].str[:4])
     if(granularite == "mois") : 
         df_filtre3['date1'] = df_filtre3['date1'].str[:7] 
     
@@ -260,7 +226,7 @@ def born_per_date_label(entity, date1, date2, granularite):
 
     return final_grouped
 
-#fonction filtrage quatrieme graphe dashboard
+#fourth dashboard graph function with filtered
 def langue_per_label(entity, dat1, dat2):
 
     filtre = df_complete['reviewBodyLang'].notna()
@@ -286,10 +252,9 @@ def langue_per_label(entity, dat1, dat2):
     return final_grouped
 
 
-######################################################################################################################################################
 
 
-#################################################################    FONCTION CHANGE CODE EN LANGUE    #######################################################
+#################################################################    LANGUAGE CODE CHANGE FUNCTION    #######################################################
 
 def changecode_langue(code):
     try:
@@ -300,7 +265,7 @@ def changecode_langue(code):
 
 
 
-#################################################################   Fontion SATEA   #########################################################################
+#################################################################   FOR A FUTUR SEARCH PART FUNCTION   #########################################################################
 
 def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
     filtre = df_complete['label'].notna()
@@ -309,7 +274,6 @@ def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
     df_filtre3 = df_filtre2[filtre3]
-    # temporaire essayer de comprendre pourquoi nous ne pouvons pas ecrire en majuscule dans l'url
     if (label == "true"):
         label="TRUE"
     if (label == "false"):
@@ -389,7 +353,8 @@ def entite_per_source_filtre_per_date(entity, source, dat1, dat2):
 ###################################################################################   JSON    ######################################################################################""
 
 
-##########################################################################  JSON SATEA  ############################################################################### 
+##########################################################################  JSON FOR A FUTUR SEARCH PART  ############################################################################### 
+
 
 def list_resume_entite_per_label_filtre_per_date(entity, label, date1, date2):
 
@@ -422,24 +387,9 @@ def list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2):
 
     return json_format
 
-def list_resume_born_topics(entities=None, date1=None, date2=None):
-    df_filtered = born_per_topics_date(entities, date1, date2)
-    topic_truth_counts = defaultdict(lambda: {'true': 0, 'false': 0, 'mixture': 0, 'other': 0})
-    for _, row in df_filtered.iterrows():
-        topics = [topic.strip() for topic in row['topic'].split(',') if topic.strip()]
-        truth_value = row['label']
-        for topic in topics:
-            if truth_value in topic_truth_counts[topic]:
-                topic_truth_counts[topic][truth_value] += 1
-                
-    # Convert to a list of dictionaries for easier JSON response
-    top_topics_list = [{'topics': topic, **counts} for topic, counts in topic_truth_counts.items()]
 
-    # Sort topics by total counts and select the top N
-    top_topics_list = sorted(top_topics_list, key=lambda x: -(x['true'] + x['false'] + x['mixture'] + x['other']))
+######################################################################  JSON Home Page  #####################################
 
-    return top_topics_list
-######################################################################JSON Home Page#####################################
 def dico_numbers_resume():
     total = claims_total()
     list = [
@@ -450,14 +400,13 @@ def dico_numbers_resume():
          }]
 
     list_json = json.dumps(list)
-    # print(list_json)
     return list_json
 
 
-########################################################################## JSON FONCTION SIMPLE ############################################################################
+########################################################################## JSON FUNCTION WITHOUT PARAMETER  ############################################################################
 
 
-# json du troisieme graphe
+# JSON third graph
 def list_resume_claims_per_source_label():
 
     call_function = claims_per_source_label()
@@ -468,7 +417,7 @@ def list_resume_claims_per_source_label():
     return json_format
 
 
-#json deuxieme graphe 
+# JSON second graph
 def entity():
 
     call_function = number_entity()
@@ -478,7 +427,8 @@ def entity():
  
     return json_data
 
-#sert mais je ne sais pas a quoi
+
+# JSON DE sert mais je ne sais pas a quoi
 def entity2():
 
     call_function = number_entity2()
@@ -489,15 +439,8 @@ def entity2():
     return json_data
 
 
-#######################################################################################################################################################################
 
-
-
-
-
-
-
-###########################################################################   JSON SUMMARY et FILTRAGE    ###########################################################################
+###########################################################################   JSON SUMMARY FUNCTION    ###########################################################################
 
 
 
@@ -527,47 +470,23 @@ def json_number_other(entity, date1, date2):
     })
 
 
-###############################################################################################################################################################
- 
 
 
+########################################################################    JSON FUNCTION WITH PARAMETER     ###################################################################
 
-
-
-
-
-
-########################################################################    JSON FONCTION PARAMETRE     ###################################################################
-
-
-
-
-
-
-def list_resume_borne_source(source):
-
-    call_function = born_source(source)
-    parsed_data = call_function.to_dict(orient='records')
-
-    json_data = json.dumps(parsed_data)  
-
-    return json_data
  
 
 import ast
-
+# Converts a string representation of a set to a list of its elements.
 def string_to_set(string):
-    # Utiliser ast.literal_eval() pour évaluer la chaîne en tant qu'expression Python
     set_str = ast.literal_eval(string)
 
-    # Si l'objet évalué est un ensemble, retourner le tableau d'éléments
     if isinstance(set_str, set):
         return list(set_str)
 
-    # Sinon, retourner une liste vide
     return []
 
-#JSON fonction filtrage quatrieme dashboard 
+#JSON fourth graph dashboard with filtered 
 def list_resume_claims_per_langues(entity, date1 ,date2):
 
     function_call = langue_per_label(entity, date1, date2)
@@ -582,7 +501,7 @@ def list_resume_claims_per_langues(entity, date1 ,date2):
 
     return json_data
 
-#JSON de la fonction de filtrage du graphe 2 du dashboard
+#JSON second graph dashboard with filtered 
 def list_resume_borne_date1_date2_entity(entity, date1, date2):  
 
     claims_per_dat_label = borne_entity(entity, date1, date2)
@@ -593,19 +512,6 @@ def list_resume_borne_date1_date2_entity(entity, date1, date2):
     return json_data
 
 
-def list_resume_born_claims_per_langues(dat1,dat2):
-
-    claims_per_langue_label = born_langue_per_label(dat1,dat2)
-    parsed_data = claims_per_langue_label.to_dict(orient='records')
-
-    for item in parsed_data:
-        language_code = item['reviewBodyLang']  
-        language_name = changecode_langue(language_code)
-        item['reviewBodyLang'] = language_name
-
-    json_data = json.dumps(parsed_data)
-
-    return json_data
 
 #JSON fonction filtrage graphe 3 dashboard
 def list_resume_born_source_label(entity, dat1, dat2):
@@ -629,7 +535,31 @@ def list_resume_born_per_date_label(entity, dat1, dat2, granularite):
     return json_data 
 
 
-#########################################################################################################################################################################
+#json for sixth function 
+def list_resume_born_topics(date1=None, date2=None):
+    df_filtered = born_per_topics_date(date1, date2)
+    topic_truth_counts = defaultdict(lambda: {'true': 0, 'false': 0, 'mixture': 0, 'other': 0})
+
+    df_filtered['topic'] = df_filtered['topic'].astype(str)
+
+    for _, row in df_filtered.iterrows():
+        topics = [topic.strip() for topic in row['topic'].split(',') if topic.strip()]
+        truth_value = row['label']
+        for topic in topics:
+            if truth_value in topic_truth_counts[topic]:
+                topic_truth_counts[topic][truth_value] += 1
+                
+    # Convert to a list of dictionaries for easier JSON response
+    top_topics_list = [{'topics': topic, **counts} for topic, counts in topic_truth_counts.items()]
+
+    # Sort topics by total counts and select the top N
+    top_topics_list = sorted(top_topics_list, key=lambda x: -(x['true'] + x['false'] + x['mixture'] + x['other']))
+
+    return top_topics_list
+
+
+################################################################################    SEARCH PART    #############################################################################
+
 def common_categories():
     df_other_cleaned = df_other.dropna(subset=['topic'])
     df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
@@ -758,7 +688,6 @@ def suggestions(query):
         if normalized_query in result:
             # Move the query to the front of the list
             result.insert(0, result.pop(result.index(normalized_query)))
-        print(result)  # Debugging
         return jsonify(result)
 
     except Exception as e:
@@ -786,7 +715,6 @@ def suggestionsEntityTopic(query,topic):
         if normalized_query in result:
             # Move the query to the front of the list
             result.insert(0, result.pop(result.index(normalized_query)))
-        print(result)  # Debugging
         return jsonify(result)
 
     except Exception as e:

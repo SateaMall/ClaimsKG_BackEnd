@@ -15,7 +15,6 @@ from modules.statistics.summary import list_resume_entite_per_label_filtre_per_d
 from modules.statistics.summary import list_resume_entite_per_langue_filtre_per_date
 from modules.statistics.summary import list_resume_born_per_date_label
 from modules.statistics.summary import list_resume_claims_per_source_label
-from modules.statistics.summary import list_resume_borne_source
 from modules.statistics.summary import list_resume_borne_date1_date2_entity
 from modules.statistics.summary import list_resume_claims_per_langues
 from modules.statistics.summary import list_resume_born_topics
@@ -30,7 +29,7 @@ from modules.statistics.summary import entity2
 app = Flask(__name__)
 CORS(app)
 
-############################Telecharger.csv###############################
+############################   DOWNLOAD.csv   ###############################
 
 @app.route ("/update_label_df")
 def update_label_df():
@@ -41,9 +40,9 @@ def update_global_df():
     return generate_global_dataframe()
 
 
-################################FONCTION SUMMARY############################
+################################    SUMMARY FUNCTION   ############################
 
-#fonction summary dashboard
+#summary dashboard function
 @app.route("/number_false")
 @app.route("/number_false/<entity>")
 @app.route("/number_false/<date1>/<date2>")
@@ -55,7 +54,7 @@ def json_number_false_end(entity=None, date1=None, date2=None):
         list_entity = []
     return json_number_false(list_entity, date1, date2)
 
-#fonction summary dashboard
+#summary dashboard function
 @app.route("/number_true")
 @app.route("/number_true/<entity>")
 @app.route("/number_true/<date1>/<date2>")
@@ -67,7 +66,7 @@ def json_number_true_end(entity=None, date1=None, date2=None):
         list_entity = []
     return json_number_true(list_entity, date1, date2)
 
-#fonction summary dashboard
+#summary dashboard function
 @app.route("/number_mixture")
 @app.route("/number_mixture/<entity>")
 @app.route("/number_mixture/<date1>/<date2>")
@@ -79,7 +78,7 @@ def json_number_mixture_end(entity=None, date1= None, date2=None):
         list_entity = []
     return json_number_mixture(list_entity, date1, date2)
 
-#fonction summary dashboard
+#summary dashboard function
 @app.route("/number_other")
 @app.route("/number_other/<entity>")
 @app.route("/number_other/<date1>/<date2>")
@@ -95,16 +94,16 @@ def json_number_other_end(entity=None, date1=None, date2=None):
 
 
 
-##################################FONCTION GRAPHE##########################
+##################################    DASHBOARD GRAPH FUNCTION    ##########################
 
-#fonction troisieme graphe dashboard
+#third dashboard graph function
 @app.route("/json_per_source_label")
 def json_per_source_label():
     return list_resume_claims_per_source_label()
 
 
 
-#fonction du premier graphe dashboard filtre
+#first dashboard graph function with filtered
 @app.route("/json_per_date1_label",methods=['GET'])
 def json_filter_date(entity=None, date1=None, date2=None, granularite=None):
     entity = request.args.get('entity')
@@ -117,7 +116,7 @@ def json_filter_date(entity=None, date1=None, date2=None, granularite=None):
         list_entity = [] 
     return list_resume_born_per_date_label(list_entity, date1, date2, granularite)
 
-#fonction deuxieme graphe dashboard
+#second dashboard graph function
 @app.route("/json_per_entity")
 def json_entity():
     return entity()
@@ -127,14 +126,7 @@ def json_entity():
 def entity():
     return entity2()
 
-@app.route("/json_born_source/<source>")
-def json6_borned_source(source):
-    return list_resume_borne_source(source)
-
-
-########################################## ayoub ################################
-
-#fonction filtrage graphe 2 dashboard
+#second dashboard graph function with filtered
 @app.route("/json_per_entity_date1_date2")
 @app.route("/json_per_entity_date1_date2/<entity>")
 @app.route("/json_per_entity_date1_date2/<date1>/<date2>")
@@ -146,9 +138,8 @@ def json_born_entity_date(entity=None, date1=None, date2=None):
         list_entity = [] 
     return list_resume_borne_date1_date2_entity(list_entity, date1, date2)
 
-################################################################################
 
-#fonction filtrage quatrieme graphe dashbord
+#fourth dashboard graph function with filtered
 @app.route("/json_per_langue_label")
 @app.route("/json_per_langue_label/<entity>")
 @app.route("/json_per_langue_label/<date1>/<date2>")
@@ -160,7 +151,7 @@ def json_langue_label(entity=None, date1=None, date2=None):
         list_entity = []
     return list_resume_claims_per_langues(list_entity, date1, date2)
 
-#fonction filtrage graphe 3 dashboard
+#third dashboard graph function with filtered
 @app.route("/json_born_per_source_label/<date1>/<date2>")
 @app.route("/json_born_per_source_label/<entity>/<date1>/<date2>")
 def born_per_source_label(entity=None, date1=None, date2=None):
@@ -170,12 +161,15 @@ def born_per_source_label(entity=None, date1=None, date2=None):
         list_entity = [] 
     return list_resume_born_source_label(list_entity, date1, date2)
 
+#sixth dashboard graph function with filtered
+@app.route("/json_born_per_topics")
 @app.route("/json_born_per_topics/<date1>/<date2>")
-@app.route("/json_born_per_topics/<entity>/<date1>/<date2>")
-def born_per_topics(entity=None, date1=None, date2=None):
-    data = list_resume_born_topics(entity, date1, date2)
+def born_per_topics(date1=None, date2=None):
+    data = list_resume_born_topics(date1, date2)
     return jsonify(data)
-########################################################   Endpoint Recherche  ###########################################################
+
+
+########################################################   FOR A FUTUR SEARCH PART  ###########################################################
 
 @app.route("/json_born_entite_label_filtre_date")
 @app.route("/json_born_entite_label_filtre_date/<entity>")
@@ -233,7 +227,7 @@ def graph_data():
     nodes, edges = create_graph_data()
     return jsonify({"nodes": nodes, "edges": edges})
 
-# fonction home page
+# home page function
 @app.route ("/resume")
 def resume():
     return dico_numbers_resume()
@@ -258,7 +252,7 @@ def suggestions_entity_topic():
 
 
 
-# graphe partie recherche 
+# search part graph 
 @app.route('/search-entity1', methods=['GET'])
 def search_entity1():
     selectedEntities = request.args.getlist('selectedEntities')
