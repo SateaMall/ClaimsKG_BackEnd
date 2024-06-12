@@ -238,7 +238,13 @@ def search_entity3():
     lastDate = request.args.get('lastDate')
     filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
     grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
-    data = grouped_df.to_dict(orient='records')
+
+    #Sort
+    source_totals = grouped_df.groupby('source')['counts'].sum().reset_index(name='total_counts')
+    sorted_sources = source_totals.sort_values(by='total_counts', ascending=False)['source']
+    sorted_grouped_df = grouped_df.set_index('source').loc[sorted_sources].reset_index()
+
+    data = sorted_grouped_df.to_dict(orient='records')
     return jsonify(data)
 
 @app.route('/search-entity4', methods=['GET'])
@@ -295,7 +301,13 @@ def search_topic3():
     filtered_df = filter_data_topic(topic, firstDate, lastDate)
     grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
     grouped_df['label'] = grouped_df['label'].str.upper()
-    data = grouped_df.to_dict(orient='records')
+
+    #Sort
+    source_totals = grouped_df.groupby('source')['counts'].sum().reset_index(name='total_counts')
+    sorted_sources = source_totals.sort_values(by='total_counts', ascending=False)['source']
+    sorted_grouped_df = grouped_df.set_index('source').loc[sorted_sources].reset_index()
+
+    data = sorted_grouped_df.to_dict(orient='records')
     return jsonify(data)
 
 @app.route('/search-topic4', methods=['GET'])
@@ -355,9 +367,13 @@ def search_entity_topic3():
     filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
     grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
     grouped_df['label'] = grouped_df['label'].str.upper()
-    data = grouped_df.to_dict(orient='records')
 
-    print (jsonify(data))
+    #Sort
+    source_totals = grouped_df.groupby('source')['counts'].sum().reset_index(name='total_counts')
+    sorted_sources = source_totals.sort_values(by='total_counts', ascending=False)['source']
+    sorted_grouped_df = grouped_df.set_index('source').loc[sorted_sources].reset_index()
+
+    data = sorted_grouped_df.to_dict(orient='records')
     return jsonify(data)
 
 

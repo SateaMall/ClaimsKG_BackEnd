@@ -43,6 +43,7 @@ def numbers_of_entities():
 ############################################################   GRAPH FUNCTION WITHOUT PARAMETER  #####################################################################
 
 #third graph function
+# Function graph3 dashboard
 def claims_per_source_label():
     filtre = df_complete['source'].notna()
     df_filtre = df_complete[filtre]
@@ -50,9 +51,15 @@ def claims_per_source_label():
     df_filtre2 = df_filtre[filtre2]
     filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
-
-    return final_grouped
-
+    # Calculate total counts per source
+    source_totals = final_grouped.groupby('source')['counts'].sum().reset_index(name='total_counts')
+    # Merge the total counts back with the original data
+    final_grouped_with_totals = final_grouped.merge(source_totals, on='source')
+    # Sort the DataFrame by 'total_counts' in descending order and then by 'source' in ascending order
+    sorted_final_grouped = final_grouped_with_totals.sort_values(by=['total_counts', 'source'], ascending=[False, True])
+    # Drop the 'total_counts' column as it is no longer needed in the output
+    sorted_final_grouped = sorted_final_grouped.drop(columns='total_counts')
+    return sorted_final_grouped
 
 #second graph function
 def number_entity():
@@ -140,17 +147,20 @@ def born_per_source_label(dat1, dat2):
     df_filtre = df_complete[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
-    filtre3 = df_filtre2['entity'].notna()
-    df_filtre3 = df_filtre2[filtre3]
-    filtre4 = df_filtre3['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre3['date1'].notna()
-    df_filtre3 = df_filtre3[filtre4]
-
-    df_filtre3 = df_filtre3[(df_filtre3['date1'] >= dat1) & (df_filtre3['date1'] <= dat2)]
-
-    filtre_group_notna = df_filtre3.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
+    filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
+    df_filtre2 = df_filtre2[filtre3]
+    df_filtre2 = df_filtre2[(df_filtre2['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
+    filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['source', 'label'])['counts'].size().reset_index(name='counts')
-
-    return final_grouped
+    # Calculate total counts per source
+    source_totals = final_grouped.groupby('source')['counts'].sum().reset_index(name='total_counts')
+    # Merge the total counts back with the original data
+    final_grouped_with_totals = final_grouped.merge(source_totals, on='source')
+    # Sort the DataFrame by 'total_counts' in descending order and then by 'source' in ascending order
+    sorted_final_grouped = final_grouped_with_totals.sort_values(by=['total_counts', 'source'], ascending=[False, True])
+    # Drop the 'total_counts' column as it is no longer needed in the output
+    sorted_final_grouped = sorted_final_grouped.drop(columns='total_counts')
+    return sorted_final_grouped
 
 #function to change format
 def format_entity(entity):
