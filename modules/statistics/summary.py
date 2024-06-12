@@ -528,8 +528,6 @@ def list_resume_born_topics(date1=None, date2=None):
     return top_topics_list
 
 
-################################################################################    SEARCH PART    #############################################################################
-
 def common_categories():
     df_other_cleaned = df_other.dropna(subset=['topic'])
     df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
@@ -593,6 +591,7 @@ def top_categories_separated(nbr_categories=60):
 
     return top_topics_list
 
+
 '''
 This version returns the weight of every single topic 
 
@@ -637,6 +636,10 @@ def create_graph_data():
 
     return nodes, edges_mapped
 '''
+
+################################################################################    SEARCH PART    #############################################################################
+
+
 ### Suggestions for the searching part 
 
 ## This will return entities that has at least 3 entities prioritizing the most popular entities and the exact entity searched if it exists
