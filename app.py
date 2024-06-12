@@ -44,51 +44,31 @@ def update_global_df():
 
 #summary dashboard function
 @app.route("/number_false")
-@app.route("/number_false/<entity>")
 @app.route("/number_false/<date1>/<date2>")
 @app.route("/number_false/<entity>/<date1>/<date2>")
-def json_number_false_end(entity=None, date1=None, date2=None):
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = []
-    return json_number_false(list_entity, date1, date2)
+def json_number_false_end(date1=None, date2=None):
+    return json_number_false(date1, date2)
 
 #summary dashboard function
 @app.route("/number_true")
-@app.route("/number_true/<entity>")
 @app.route("/number_true/<date1>/<date2>")
 @app.route("/number_true/<entity>/<date1>/<date2>")
-def json_number_true_end(entity=None, date1=None, date2=None):
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = []
-    return json_number_true(list_entity, date1, date2)
+def json_number_true_end(date1=None, date2=None):
+    return json_number_true(date1, date2)
 
 #summary dashboard function
 @app.route("/number_mixture")
-@app.route("/number_mixture/<entity>")
 @app.route("/number_mixture/<date1>/<date2>")
 @app.route("/number_mixture/<entity>/<date1>/<date2>")
-def json_number_mixture_end(entity=None, date1= None, date2=None):
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = []
-    return json_number_mixture(list_entity, date1, date2)
+def json_number_mixture_end(date1= None, date2=None):
+    return json_number_mixture(date1, date2)
 
 #summary dashboard function
 @app.route("/number_other")
-@app.route("/number_other/<entity>")
 @app.route("/number_other/<date1>/<date2>")
 @app.route("/number_other/<entity>/<date1>/<date2>")
-def json_number_other_end(entity=None, date1=None, date2=None):
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = []
-    return json_number_other(list_entity, date1, date2)
+def json_number_other_end(date1=None, date2=None):
+    return json_number_other(date1, date2)
 
 ###########################################################################
 
@@ -105,16 +85,11 @@ def json_per_source_label():
 
 #first dashboard graph function with filtered
 @app.route("/json_per_date1_label",methods=['GET'])
-def json_filter_date(entity=None, date1=None, date2=None, granularite=None):
-    entity = request.args.get('entity')
+def json_filter_date(date1=None, date2=None, granularite=None):
     date1 = request.args.get('date1')
     date2 = request.args.get('date2')
     granularite = request.args.get('granularite')
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = [] 
-    return list_resume_born_per_date_label(list_entity, date1, date2, granularite)
+    return list_resume_born_per_date_label(date1, date2, granularite)
 
 #second dashboard graph function
 @app.route("/json_per_entity")
@@ -128,38 +103,21 @@ def entity():
 
 #second dashboard graph function with filtered
 @app.route("/json_per_entity_date1_date2")
-@app.route("/json_per_entity_date1_date2/<entity>")
 @app.route("/json_per_entity_date1_date2/<date1>/<date2>")
-@app.route("/json_per_entity_date1_date2/<entity>/<date1>/<date2>")
-def json_born_entity_date(entity=None, date1=None, date2=None):
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = [] 
-    return list_resume_borne_date1_date2_entity(list_entity, date1, date2)
+def json_born_entity_date(date1=None, date2=None):
+    return list_resume_borne_date1_date2_entity(date1, date2)
 
 
 #fourth dashboard graph function with filtered
 @app.route("/json_per_langue_label")
-@app.route("/json_per_langue_label/<entity>")
 @app.route("/json_per_langue_label/<date1>/<date2>")
-@app.route("/json_per_langue_label/<entity>/<date1>/<date2>")
-def json_langue_label(entity=None, date1=None, date2=None):
-    if entity is not None:
-        list_entity = entity.split(',')
-    else:
-        list_entity = []
-    return list_resume_claims_per_langues(list_entity, date1, date2)
+def json_langue_label(date1=None, date2=None):
+    return list_resume_claims_per_langues(date1, date2)
 
 #third dashboard graph function with filtered
 @app.route("/json_born_per_source_label/<date1>/<date2>")
-@app.route("/json_born_per_source_label/<entity>/<date1>/<date2>")
-def born_per_source_label(entity=None, date1=None, date2=None):
-    if entity:
-        list_entity = entity.split(',')
-    else:
-        list_entity = [] 
-    return list_resume_born_source_label(list_entity, date1, date2)
+def born_per_source_label(date1=None, date2=None):
+    return list_resume_born_source_label(date1, date2)
 
 #sixth dashboard graph function with filtered
 @app.route("/json_born_per_topics")
@@ -172,12 +130,9 @@ def born_per_topics(date1=None, date2=None):
 ########################################################   FOR A FUTUR SEARCH PART  ###########################################################
 
 @app.route("/json_born_entite_label_filtre_date")
-@app.route("/json_born_entite_label_filtre_date/<entity>")
 @app.route("/json_born_entite_label_filtre_date/<label>")
 @app.route("/json_born_entite_label_filtre_date/<date1>/<date2>")
 @app.route("/json_born_entite_label_filtre_date/<label>/<date1>/<date2>")
-@app.route("/json_born_entite_label_filtre_date/<entity>/<date1>/<date2>")
-@app.route("/json_born_entite_label_filtre_date/<entity>/<label>/<date1>/<date2>")
 def born_per_entite_label_filtre_date(entity= None, label= None, date1= None, date2= None):
     if entity is not None:
         list_entity = entity.split(',')
