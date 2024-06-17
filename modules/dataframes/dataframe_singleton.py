@@ -6,21 +6,20 @@ pandas.set_option('display.max_columns', None)
 base_path = Path(__file__).parent.parent
 
 
-file_path = (base_path / "df_complete.csv").resolve()
-df_complete = pandas.read_csv(file_path, dtype={"id1": str, "id2": str, "entity": str}, header=0)
+file_path_entity = (base_path / "df_entity.csv").resolve()
+df_entity = pandas.read_csv(file_path_entity, dtype={"id1": str, "id2": str, "entity": str}, header=0)
 
-df_Source_labelTRUE = pandas.read_csv('modules/df_Source_labelTRUE.csv', dtype={"id1": str, "id2": str, "entity": str},
-                                      header=0)
-df_Source_labelFALSE = pandas.read_csv('modules/df_Source_labelFALSE.csv',
-                                       dtype={"id1": str, "id2": str, "entity": str}, header=0)
-df_Source_labelOTHER = pandas.read_csv('modules/df_Source_labelOTHER.csv',
-                                       dtype={"id1": str, "id2": str, "entity": str}, header=0)
-df_Source_labelMIXTURE = pandas.read_csv('modules/df_Source_labelMIXTURE.csv',
-                                         dtype={"id1": str, "id2": str, "entity": str}, header=0)
+file_path_simple = (base_path / "df_simple.csv").resolve()
+df_simple = pandas.read_csv(file_path_simple, dtype={"id1": str, "id2": str}, header=0)
 
+file_path_keyword = (base_path / "df_keyword.csv").resolve()
+df_keyword = pandas.read_csv(file_path_keyword, dtype={"id1": str, "id2": str, "keywords": str}, header=0)
 
-file_path_df_other = (base_path / "df_other.tsv").resolve()
-df_other = pandas.read_csv(file_path_df_other, delimiter='\t', header=0,encoding='latin-1')
+file_path_topic = (base_path / "df_topic.tsv").resolve()
+df_topic = pandas.read_csv(file_path_topic, delimiter='\t', header=0,encoding='latin-1')
 
-df_other['entity'] = df_other['entity'].fillna('').astype(str)
-df_other['entity'] = df_other['entity'].apply(lambda x: x.split('/')[-1].replace('_', ' ') if isinstance(x, str) and x else '')
+df_topic['entity'] = df_topic['entity'].fillna('').astype(str)
+df_topic['entity'] = df_topic['entity'].apply(lambda x: x.split('/')[-1].replace('_', ' ') if isinstance(x, str) and x else '')
+
+# Ensure the 'entity' column is string type and fill NaN with an empty string
+df_entity['entity'] = df_entity['entity'].astype(str).fillna('')

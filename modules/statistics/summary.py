@@ -7,37 +7,66 @@ import pandas
 
 from langcodes import Language
 from itertools import combinations
-from modules.dataframes.dataframe_singleton import df_complete
-from modules.dataframes.dataframe_singleton import df_other
-from modules.dataframes.dataframe_singleton import df_Source_labelFALSE
-from modules.dataframes.dataframe_singleton import df_Source_labelMIXTURE
-from modules.dataframes.dataframe_singleton import df_Source_labelOTHER
-from modules.dataframes.dataframe_singleton import df_Source_labelTRUE
-
-
+from modules.dataframes.dataframe_singleton import df_simple
+from modules.dataframes.dataframe_singleton import df_keyword
+from modules.dataframes.dataframe_singleton import df_entity
+from modules.dataframes.dataframe_singleton import df_topic
 
 #################################################   HOME page function   #########################################
 
 def claims_total():
-    nb_cw_total = len(df_complete['id2'].unique())
-    nb_cr_total = len(df_complete['id1'].unique())
+    nb_cw_total = len(df_simple['id2'].unique())
+    nb_cr_total = len(df_simple['id1'].unique())
+    print(df_simple.head())
+
+
     return nb_cw_total, nb_cr_total
 
-
-def total_claim_review():
-    nb_cr_total = len(df_complete['id1'].unique())
-    return nb_cr_total
-
 def get_dates():
-    min1 = pandas.to_datetime(df_complete['date1'].dropna(), errors='coerce').min()
-    max1 = pandas.to_datetime(df_complete['date1'].dropna(), errors='coerce').max()
+    min1 = pandas.to_datetime(df_simple['date1'].dropna(), errors='coerce').min()
+    max1 = pandas.to_datetime(df_simple['date1'].dropna(), errors='coerce').max()
     min1 = min1.strftime('%B %d, %Y')
     max1 = max1.strftime('%B %d, %Y')
     return min1, max1
 
 def numbers_of_entities():
-    nb_entities = len(df_complete['entity'].dropna().unique())
+    nb_entities = len(df_entity['entity'].dropna().unique())
     return nb_entities
+
+
+######################################################################  SUMMARY FUNCTION  ###########################################################################
+
+def number_label_false(date1, date2):
+    df_filtre = df_simple
+    df_filtre = df_filtre[(df_filtre['label'] == 'FALSE')]
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
+
+def number_label_true(date1, date2):
+    df_filtre = df_simple
+    df_filtre = df_filtre[(df_filtre['label'] == 'TRUE')]
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
+
+def number_label_mixture(date1, date2):
+    df_filtre = df_simple
+    df_filtre = df_filtre[(df_filtre['label'] == 'MIXTURE')]
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
+
+def number_label_other(date1, date2):
+    df_filtre = df_simple
+    df_filtre = df_filtre[(df_filtre['label'] == 'OTHER')]
+    if date1 is not None: 
+        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
+    nb_cw_total = len(df_filtre['id1'].unique())
+    return nb_cw_total
 
 
 ############################################################   GRAPH FUNCTION WITHOUT PARAMETER  #####################################################################
@@ -45,8 +74,8 @@ def numbers_of_entities():
 #third graph function
 # Function graph3 dashboard
 def claims_per_source_label():
-    filtre = df_complete['source'].notna()
-    df_filtre = df_complete[filtre]
+    filtre = df_simple['source'].notna()
+    df_filtre = df_simple[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
     filtre_group_notna = df_filtre2.groupby(['id1','source','label'])['source'].size().reset_index(name='counts')
@@ -63,15 +92,14 @@ def claims_per_source_label():
 
 #second graph function
 def number_entity():
-    filtre = df_complete['entity'].notna()
-    df_filtre = df_complete[filtre] 
+    filtre = df_entity['entity'].notna()
+    df_filtre = df_entity[filtre] 
     filtre_group_notna = df_filtre.groupby(['entity'])['entity'].size().reset_index(name='counts')
     return filtre_group_notna
 
-#sert mais je ne sais pas a quoi
 def number_entity2():
-    filtre = df_complete['entity'].notna()
-    df_filtre = df_complete[filtre]
+    filtre = df_entity['entity'].notna()
+    df_filtre = df_entity[filtre]
     filtre_group_notna = df_filtre['entity'].value_counts().reset_index()
     filtre_group_notna.columns = ['entity', 'counts']
     filtre_group_notna = filtre_group_notna.sort_values('counts', ascending=False).head(50)
@@ -79,59 +107,12 @@ def number_entity2():
     return filtre_group_notna
 
 
-
-######################################################################  SUMMARY FUNCTION  ###########################################################################
-
-
-def number_label_false(date1, date2):
-    df_filtre = df_complete
-    df_filtre = df_filtre[(df_filtre['label'] == 'FALSE')]
-
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-def number_label_true(date1, date2):
-    df_filtre = df_complete
-    df_filtre = df_filtre[(df_filtre['label'] == 'TRUE')]
-   
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-
-def number_label_mixture(date1, date2):
-    df_filtre = df_complete
-    df_filtre = df_filtre[(df_filtre['label'] == 'MIXTURE')]
-
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-def number_label_other(date1, date2):
-    df_filtre = df_complete
-    df_filtre = df_filtre[(df_filtre['label'] == 'OTHER')]
-
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-
-
 ##############################################################  FUNCTION GRAPH WITH PARAMETER   #############################################################################
 
 #second dashboard graph function with filtered
 def borne_entity(dat1, dat2):
-    filtre = df_complete['entity'].notna()
-    df_filtre = df_complete[filtre]
+    filtre = df_entity['entity'].notna()
+    df_filtre = df_entity[filtre]
 
     if dat1 is not None:    
         df_filtre = df_filtre[(df_filtre['date1'] >= dat1) & (df_filtre['date1'] <= dat2)]
@@ -143,8 +124,8 @@ def borne_entity(dat1, dat2):
 
 #third dashboard graph function with filtered
 def born_per_source_label(dat1, dat2):
-    filtre = df_complete['source'].notna()
-    df_filtre = df_complete[filtre]
+    filtre = df_simple['source'].notna()
+    df_filtre = df_simple[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
@@ -169,7 +150,7 @@ def format_entity(entity):
 
 #sixth dashboard graph function with filtered
 def born_per_topics_date(date1=None, date2=None):
-    df_filtered = df_other.copy()
+    df_filtered = df_topic.copy()
     if date1 and date2 is not None :
         df_filtered['date1'] = pandas.to_datetime(df_filtered['date1'])
 
@@ -180,38 +161,68 @@ def born_per_topics_date(date1=None, date2=None):
     return df_filtered
 
 #first dashboard graph function with filtered
+# First dashboard graph function with filtered
 def born_per_date_label(date1, date2, granularite):
-    filtre = df_complete['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_complete['date1'].notna()
-    df_filtre = df_complete[filtre]
+    filtre = df_simple['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_simple['date1'].notna()
+    df_filtre = df_simple[filtre]
     filtre2 = df_filtre['label'].notna() 
     df_filtre3 = df_filtre[filtre2]
     filtre3 = df_filtre3['entity'].notna()
     df_filtre3 = df_filtre3[filtre3]
 
-    if date1 is not None :
-        df_filtre3 = df_filtre3[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-    if(granularite=="annee"):
+    if date1 is not None:
+        df_filtre3 = df_filtre3[(df_filtre3['date1'] >= date1) & (df_filtre3['date1'] <= date2)]
+    if granularite == "annee":
         df_filtre3['date1'] = df_filtre3['date1'].str[:4]
-    if(granularite == "mois") : 
-        df_filtre3['date1'] = df_filtre3['date1'].str[:7] 
+    if granularite == "mois":
+        df_filtre3['date1'] = df_filtre3['date1'].str[:7]
+
+    # Exclude specific entities
+    excluded_entities = [ 'Facebook',
+        'social media', 'PolitiFact', 'Politifact', 'Twitter', 'fact check', 'JavaScript', 'Fact Check', 'Africa Check',
+        '2016', '2020', 'News Feed', 'misinformation', 'CNN', 'e-mail', '2012', 'false news', 'twitter.com',
+        'Viral Content', 'fact Checks', 'Facebook\'s', 'Washington Post', 'Youtube', 'Internet', 'Instagram',
+        'fact-check', 'Fox News', 'June 15', 'November 15', 'AFP', 'Screenshot', '2017'
+    ]
+    df_excluded_entities = df_filtre3[~df_filtre3['entity'].isin(excluded_entities)]
+
+    # Aggregate counts of unique claims by date and label
     
-    filtre_group_notna = df_filtre3.groupby(['id1','date1','label'])['date1'].size().reset_index(name='counts')
-    final_grouped = filtre_group_notna.groupby(['date1', 'label'])['counts'].size().reset_index(name='counts')
+    unique_claims = df_filtre3.drop_duplicates(subset=['id1'])
+    total_counts = unique_claims.groupby(['date1', 'label']).size().reset_index(name='counts')
+    
+    # Find the most recurrent entity for each date-label combination
+    entity_counts = df_excluded_entities.groupby(['date1', 'label', 'entity']).size().reset_index(name='counts')
+    most_recurrent_entity = entity_counts.loc[entity_counts.groupby(['date1', 'label'])['counts'].idxmax()].reset_index(drop=True)
 
+    # Calculate total counts for each date across all labels
+    total_counts_all = unique_claims.groupby(['date1']).size().reset_index(name='counts')
+    total_counts_all['label'] = 'ALL'
+    
+    # Find the most recurrent entity for each date across all labels
+    entity_counts_all = df_excluded_entities.groupby(['date1', 'entity']).size().reset_index(name='counts')
+    most_recurrent_entity_all = entity_counts_all.loc[entity_counts_all.groupby(['date1'])['counts'].idxmax()].reset_index(drop=True)
+    most_recurrent_entity_all['label'] = 'ALL'
 
-    return final_grouped
+    # Merge total counts with most recurrent entity info for each label
+    merged_data = pandas.merge(total_counts, most_recurrent_entity, on=['date1', 'label'], suffixes=('', '_most_recurrent'))
+
+    # Combine total counts and most recurrent entity info for 'ALL' label
+    merged_data_all = pandas.merge(total_counts_all, most_recurrent_entity_all, on=['date1', 'label'], suffixes=('', '_most_recurrent'))
+    merged_data = pandas.concat([merged_data, merged_data_all], ignore_index=True)
+
+    return merged_data
+
 
 #fourth dashboard graph function with filtered
 def langue_per_label(dat1, dat2):
 
-    filtre = df_complete['reviewBodyLang'].notna()
-    df_filtre = df_complete[filtre] 
+    filtre = df_simple['reviewBodyLang'].notna()
+    df_filtre = df_simple[filtre] 
     filtre2 = df_filtre['label'].notna()
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
     df_filtre2 = df_filtre2[filtre3]
-    filtre4 = df_filtre2['entity'].notna()
-    df_filtre2 = df_filtre2[filtre4]
 
     if dat1 is not None: 
         df_filtre2 = df_filtre2[(df_filtre['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
@@ -233,13 +244,11 @@ def changecode_langue(code):
     except ValueError:
         return code
 
-
-
 #################################################################   FOR A FUTUR SEARCH PART FUNCTION   #########################################################################
 
 def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
-    filtre = df_complete['label'].notna()
-    df_filtre = df_complete[filtre]
+    filtre = df_entity['label'].notna()
+    df_filtre = df_entity[filtre]
     filtre2 = df_filtre['entity'].notna()
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
@@ -270,8 +279,8 @@ def entite_per_label_filtre_per_date(entity, label, dat1, dat2):
 
 
 def entite_per_langue_filtre_per_date(entity, langue, dat1, dat2):
-    filtre = df_complete['reviewBodyLang'].notna()
-    df_filtre = df_complete[filtre] 
+    filtre = df_simple['reviewBodyLang'].notna()
+    df_filtre = df_simple[filtre] 
     filtre2 = df_filtre['entity'].notna()
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
@@ -294,8 +303,8 @@ def entite_per_langue_filtre_per_date(entity, langue, dat1, dat2):
 
 
 def entite_per_source_filtre_per_date(entity, source, dat1, dat2):
-    filtre = df_complete['source'].notna()
-    df_filtre = df_complete[filtre] 
+    filtre = df_simple['source'].notna()
+    df_filtre = df_simple[filtre] 
     filtre2 = df_filtre['entity'].notna()
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
@@ -316,9 +325,6 @@ def entite_per_source_filtre_per_date(entity, source, dat1, dat2):
     final_grouped = filtre_group_notna.groupby(['entity', 'source'])['counts'].size().reset_index(name='counts')
     
     return final_grouped
-
-
-
 
 ###################################################################################   JSON    ######################################################################################""
 
@@ -357,20 +363,6 @@ def list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2):
 
     return json_format
 
-
-######################################################################  JSON Home Page  #####################################
-
-def dico_numbers_resume():
-    total = claims_total()
-    list = [
-        {"Numbers of claims ": str(total[0]),
-         "Numbers of claims review ": str(total_claim_review()),
-         "Since ": str(get_dates()[0]), "to ": str(get_dates()[1]),
-         "Numbers of entities ": str(numbers_of_entities()),
-         }]
-
-    list_json = json.dumps(list)
-    return list_json
 
 
 ########################################################################## JSON FUNCTION WITHOUT PARAMETER  ############################################################################
@@ -413,6 +405,7 @@ def entity2():
 ###########################################################################   JSON SUMMARY FUNCTION    ###########################################################################
 
 
+#### DASHBOARD
 
 def json_number_false(date1, date2):
    
@@ -440,11 +433,21 @@ def json_number_other(date1, date2):
     })
 
 
+#### HOME-PAGE
 
+def dico_numbers_resume():
+    total = claims_total()
+    list = [
+        {"Numbers of claims ": str(total[0]),
+         "Numbers of claims review ": str(total[1]),
+         "Since ": str(get_dates()[0]), "to ": str(get_dates()[1]),
+         "Numbers of entities ": str(numbers_of_entities()),
+         }]
+
+    list_json = json.dumps(list)
+    return list_json
 
 ########################################################################    JSON FUNCTION WITH PARAMETER     ###################################################################
-
- 
 
 import ast
 # Converts a string representation of a set to a list of its elements.
@@ -528,10 +531,12 @@ def list_resume_born_topics(date1=None, date2=None):
     return top_topics_list
 
 
+
+#####################  THIS PART IS FOR TOPIC GRAPHS #################
 def common_categories():
-    df_other_cleaned = df_other.dropna(subset=['topic'])
-    df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
-    df_filtered = df_other_cleaned[df_other_cleaned['topic'].str.contains(",")]
+    df_topic_cleaned = df_topic.dropna(subset=['topic'])
+    df_topic_cleaned['topic'] = df_topic_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
+    df_filtered = df_topic_cleaned[df_topic_cleaned['topic'].str.contains(",")]
     topic_counts = Counter(df_filtered['topic'])
     top_topics = topic_counts.most_common(40)
 
@@ -566,11 +571,11 @@ def create_graph_data():
 
 def top_categories_separated(nbr_categories=60):
 
-    df_other_cleaned = df_other.dropna(subset=['topic'])
+    df_topic_cleaned = df_topic.dropna(subset=['topic'])
 
     # Vectorized split and explode
-    df_other_cleaned['topics'] = df_other_cleaned['topic'].str.split(',')
-    df_exploded = df_other_cleaned.explode('topics')
+    df_topic_cleaned['topics'] = df_topic_cleaned['topic'].str.split(',')
+    df_exploded = df_topic_cleaned.explode('topics')
     df_exploded['topics'] = df_exploded['topics'].str.strip()
     df_exploded = df_exploded[df_exploded['topics'] != '']
 
@@ -599,12 +604,12 @@ This version returns the weight of every single topic
 
 
 def common_categories(nbr_categories=60):
-    df_other_cleaned = df_other.dropna(subset=['topic'])
+    df_topic_cleaned = df_topic.dropna(subset=['topic'])
 
-    df_other_cleaned['topic'] = df_other_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
-    df_other_cleaned = df_other_cleaned[df_other_cleaned['topic'] != '']
+    df_topic_cleaned['topic'] = df_topic_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
+    df_topic_cleaned = df_topic_cleaned[df_topic_cleaned['topic'] != '']
 
-    topic_counts = Counter(df_other_cleaned['topic'])
+    topic_counts = Counter(df_topic_cleaned['topic'])
     top_topics = topic_counts.most_common(nbr_categories)
     # Convert to a list of dictionaries for easier JSON response
     top_topics_list = [{'topic': category, 'count': count} for category, count in top_topics]
@@ -646,7 +651,7 @@ def create_graph_data():
 def suggestions(query):
     try:
         # Normalize case and filter entries
-        suggestions = df_complete[df_complete['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
+        suggestions = df_entity[df_entity['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
         suggestions_lower = suggestions.str.lower()
         # Count occurrences and filter
         entity_counts = suggestions_lower.value_counts()
@@ -670,9 +675,9 @@ def suggestions(query):
 def suggestionsEntityTopic(query,topic):
     try:
         # Normalize case and filter entries
-        df_other['topic'] = df_other['topic'].astype(str).fillna('')
-        topic_filter = df_other['topic'].str.contains(topic, case=False, na=False)
-        filtered_df = df_other[topic_filter]
+        df_topic['topic'] = df_topic['topic'].astype(str).fillna('')
+        topic_filter = df_topic['topic'].str.contains(topic, case=False, na=False)
+        filtered_df = df_topic[topic_filter]
         suggestions = filtered_df[filtered_df['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
         suggestions_lower = suggestions.str.lower()
         # Count occurrences and filter
@@ -697,19 +702,16 @@ def suggestionsEntityTopic(query,topic):
 ## Retreive themes 
 def extract_topics():
     unique_topics = set()
-    for prediction in df_other['topic']:
+    for prediction in df_topic['topic']:
         if isinstance(prediction, str):
             topics = [topic.strip() for topic in prediction.split(',') if topic.strip()]
             unique_topics.update(topics)
     return jsonify(list(unique_topics))
 
 def filter_data_entity(selectedEntities, firstDate=None, lastDate=None):
-    # Ensure the 'entity' column is string type and fill NaN with an empty string
-    df_complete['entity'] = df_complete['entity'].astype(str).fillna('')
-
     # Filter by entities case-insensitively
-    entity_filter = df_complete['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
-    filtered_df = df_complete[entity_filter]
+    entity_filter = df_entity['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
+    filtered_df = df_entity[entity_filter]
     filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
     # Filter by date range if provided
     if firstDate and lastDate:
@@ -721,9 +723,9 @@ def filter_data_entity(selectedEntities, firstDate=None, lastDate=None):
     return filtered_df
 
 def filter_data_topic(topic, firstDate=None, lastDate=None):
-    df_other['topic'] = df_other['topic'].astype(str).fillna('')
-    topic_filter = df_other['topic'].str.contains(topic, case=False, na=False)
-    filtered_df = df_other[topic_filter]
+    df_topic['topic'] = df_topic['topic'].astype(str).fillna('')
+    topic_filter = df_topic['topic'].str.contains(topic, case=False, na=False)
+    filtered_df = df_topic[topic_filter]
     filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
     if firstDate and lastDate:
         filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
@@ -734,11 +736,11 @@ def filter_data_topic(topic, firstDate=None, lastDate=None):
     return filtered_df
 
 def filter_data_topic_entity(selectedEntities, topic, firstDate=None, lastDate=None):
-    df_other['entity'] = df_other['entity'].astype(str).fillna('')
+    df_topic['entity'] = df_topic['entity'].astype(str).fillna('')
 
     # Filter by entities case-insensitively
-    entity_filter = df_other['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
-    filtered_df = df_other[entity_filter]
+    entity_filter = df_topic['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
+    filtered_df = df_topic[entity_filter]
 
     filtered_df['topic'] = filtered_df['topic'].astype(str).fillna('')
     topic_filter = filtered_df['topic'].str.contains(topic, case=False, na=False)

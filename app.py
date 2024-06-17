@@ -1,8 +1,6 @@
 from flask import Flask, jsonify, request
 import langcodes
-from markupsafe import Markup
-from modules.dataframes import generate_global_dataframe
-from modules.dataframes import generate_per_label_dataframe
+from modules.dataframes import generate_dataframes
 from modules.statistics.summary import create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic, top_categories_separated
 from modules.statistics.summary import suggestions
 from modules.statistics.summary import dico_numbers_resume
@@ -31,14 +29,10 @@ CORS(app)
 
 ############################   DOWNLOAD.csv   ###############################
 
-@app.route ("/update_label_df")
-def update_label_df():
-    return generate_per_label_dataframe()
 
-@app.route ("/update_global_df")
-def update_global_df():
-    return generate_global_dataframe()
-
+@app.route ("/update_dataframes")
+def update_dataframes():
+    return generate_dataframes()
 
 ################################    SUMMARY FUNCTION   ############################
 
@@ -80,8 +74,6 @@ def json_number_other_end(date1=None, date2=None):
 @app.route("/json_per_source_label")
 def json_per_source_label():
     return list_resume_claims_per_source_label()
-
-
 
 #first dashboard graph function with filtered
 @app.route("/json_per_date1_label",methods=['GET'])
