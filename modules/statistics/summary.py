@@ -4,7 +4,7 @@ from typing import Counter
 
 from flask import current_app, jsonify
 import pandas
-
+import numpy as np
 from langcodes import Language
 from itertools import combinations
 from modules.dataframes.dataframe_singleton import df_simple
@@ -160,39 +160,45 @@ def born_per_topics_date(date1=None, date2=None):
 
     return df_filtered
 
-#first dashboard graph function with filtered
+
 # First dashboard graph function with filtered
+
 def born_per_date_label(date1, date2, granularite):
-    filtre = df_simple['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_simple['date1'].notna()
-    df_filtre = df_simple[filtre]
-    filtre2 = df_filtre['label'].notna() 
-    df_filtre3 = df_filtre[filtre2]
-    filtre3 = df_filtre3['entity'].notna()
-    df_filtre3 = df_filtre3[filtre3]
+    filtre = df_entity['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_entity['date1'].notna()
+    df_filtre = df_entity[filtre]
+    
+    # Ensure the label column is not null
+    df_filtre2 = df_filtre[df_filtre['label'].notna()]
+    
+    # Ensure the entity column is not null and is not NaN or empty
+    df_filtre3 = df_filtre2[df_filtre2['entity'].notna() & (df_filtre2['entity'].str.strip() != '')]
 
     if date1 is not None:
         df_filtre3 = df_filtre3[(df_filtre3['date1'] >= date1) & (df_filtre3['date1'] <= date2)]
+    
     if granularite == "annee":
         df_filtre3['date1'] = df_filtre3['date1'].str[:4]
     if granularite == "mois":
         df_filtre3['date1'] = df_filtre3['date1'].str[:7]
 
     # Exclude specific entities
-    excluded_entities = [ 'Facebook',
-        'social media', 'PolitiFact', 'Politifact', 'Twitter', 'fact check', 'JavaScript', 'Fact Check', 'Africa Check',
-        '2016', '2020', 'News Feed', 'misinformation', 'CNN', 'e-mail', '2012', 'false news', 'twitter.com',
-        'Viral Content', 'fact Checks', 'Facebook\'s', 'Washington Post', 'Youtube', 'Internet', 'Instagram',
-        'fact-check', 'Fox News', 'June 15', 'November 15', 'AFP', 'Screenshot', '2017'
+    excluded_entities = [ 
+        'Facebook', 'social media', 'PolitiFact', 'Politifact', 'Twitter', 'fact check', 'JavaScript', 
+        'Fact Check', 'Africa Check', '2016', '2020', 'News Feed', 'misinformation', 'CNN', 'e-mail', 
+        '2012', 'false news', 'twitter.com', 'Viral Content', 'fact Checks', 'Facebook\'s', 
+        'Washington Post', 'Youtube', 'Internet', 'Instagram', 'fact-check', 'Fox News', 'June 15', 
+        'November 15', 'AFP', 'Screenshot', '2017'
     ]
-    df_excluded_entities = df_filtre3[~df_filtre3['entity'].isin(excluded_entities)]
+
+    # Filter out the excluded entities
+    df_filtered = df_filtre3[~df_filtre3['entity'].isin(excluded_entities)]
 
     # Aggregate counts of unique claims by date and label
-    
-    unique_claims = df_filtre3.drop_duplicates(subset=['id1'])
+    unique_claims = df_filtered.drop_duplicates(subset=['id1'])
     total_counts = unique_claims.groupby(['date1', 'label']).size().reset_index(name='counts')
     
     # Find the most recurrent entity for each date-label combination
-    entity_counts = df_excluded_entities.groupby(['date1', 'label', 'entity']).size().reset_index(name='counts')
+    entity_counts = df_filtered.groupby(['date1', 'label', 'entity']).size().reset_index(name='counts')
     most_recurrent_entity = entity_counts.loc[entity_counts.groupby(['date1', 'label'])['counts'].idxmax()].reset_index(drop=True)
 
     # Calculate total counts for each date across all labels
@@ -200,7 +206,7 @@ def born_per_date_label(date1, date2, granularite):
     total_counts_all['label'] = 'ALL'
     
     # Find the most recurrent entity for each date across all labels
-    entity_counts_all = df_excluded_entities.groupby(['date1', 'entity']).size().reset_index(name='counts')
+    entity_counts_all = df_filtered.groupby(['date1', 'entity']).size().reset_index(name='counts')
     most_recurrent_entity_all = entity_counts_all.loc[entity_counts_all.groupby(['date1'])['counts'].idxmax()].reset_index(drop=True)
     most_recurrent_entity_all['label'] = 'ALL'
 
