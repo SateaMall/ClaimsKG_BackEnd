@@ -32,6 +32,9 @@ def get_sparql_dataframe(query: SparQLOffsetFetcher):
         out.append(item)
     return pandas.DataFrame(out, columns=cols)
 
+def clean_keyword(keyword): 
+    return keyword.strip("[]' ")
+
 
 def generate_dataframes():
     prefixes = "PREFIX schema: <http://schema.org/> PREFIX nif: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#>"
@@ -86,18 +89,22 @@ def generate_dataframes():
     qwords = SparQLOffsetFetcher(sparql, 10000, prefixes,
                                  """
                     ?id2 a schema:CreativeWork.
-                    ?id2 schema:keywords ?keywords.
+                    ?id2 schema:keywords ?keywordsURI.
+                    ?keywordsURI schema:name ?keywords.
                                  """, "distinct ?id2 ?keywords")
 
 
     df_keywords = get_sparql_dataframe(qwords)
+    df_keywords['keywords'] = df_keywords['keywords'].apply(clean_keyword)
+
     df_entities1 = get_sparql_dataframe(quent1)
     df_entities2 = get_sparql_dataframe(quent2)
     df_langue = get_sparql_dataframe(qulang)
     df_label = get_sparql_dataframe(qulabel)
     df_dates_cr = get_sparql_dataframe(qudates_cr)
     df_sources = get_sparql_dataframe(qusources)
-  
+
+
 
     df_date_label=pandas.merge(df_label, df_dates_cr, on=['id1'], how='outer')
     df_date_label_langue = pandas.merge(df_date_label, df_langue, on=['id1'], how='outer')
@@ -115,6 +122,8 @@ def generate_dataframes():
     df_date_label_langue_sources_keyword=pandas.merge(df_date_label_langue_sources, df_keywords, on=['id2'], how='outer')
     df_complete_keywords = df_date_label_langue_sources_keyword
 
+
+    
 
 
     # dataframe to csv

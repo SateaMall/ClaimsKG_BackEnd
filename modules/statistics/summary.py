@@ -1,7 +1,7 @@
 from collections import defaultdict
 import json
 from typing import Counter
-
+import ast
 from flask import current_app, jsonify
 import pandas
 import numpy as np
@@ -143,99 +143,82 @@ def born_per_source_label(dat1, dat2):
     sorted_final_grouped = sorted_final_grouped.drop(columns='total_counts')
     return sorted_final_grouped
 
-#function to change format
+# Function to change format
 def format_entity(entity):
     return f"http://dbpedia.org/resource/{entity.replace(' ', '_')}"
 
-
-#sixth dashboard graph function with filtered
+# Sixth dashboard graph function with filtered
 def born_per_topics_date(date1=None, date2=None):
     df_filtered = df_topic.copy()
     if date1 and date2 is not None :
         df_filtered['date1'] = pandas.to_datetime(df_filtered['date1'])
-
         # Filter by date range
         mask_date = (df_filtered['date1'] >= date1) & (df_filtered['date1'] <= date2)
         df_filtered = df_filtered.loc[mask_date]
-
     return df_filtered
 
-
 # First dashboard graph function with filtered
-
 def born_per_date_label(date1, date2, granularite):
-    filtre = df_entity['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_entity['date1'].notna()
-    df_filtre = df_entity[filtre]
+    filtre = df_keyword['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_keyword['date1'].notna()
+    df_filtre = df_keyword[filtre]
     
     # Ensure the label column is not null
     df_filtre2 = df_filtre[df_filtre['label'].notna()]
-    
-    # Ensure the entity column is not null and is not NaN or empty
-    df_filtre3 = df_filtre2[df_filtre2['entity'].notna() & (df_filtre2['entity'].str.strip() != '')]
-
+    # Ensure the keyword column is not null and is not NaN or empty
+    df_filtre3 = df_filtre2[df_filtre2['keywords'].notna() & (df_filtre2['keywords'].str.strip() != '')]
     if date1 is not None:
         df_filtre3 = df_filtre3[(df_filtre3['date1'] >= date1) & (df_filtre3['date1'] <= date2)]
-    
     if granularite == "annee":
         df_filtre3['date1'] = df_filtre3['date1'].str[:4]
     if granularite == "mois":
         df_filtre3['date1'] = df_filtre3['date1'].str[:7]
-
-    # Exclude specific entities
-    excluded_entities = [ 
-        'Facebook', 'social media', 'PolitiFact', 'Politifact', 'Twitter', 'fact check', 'JavaScript', 
-        'Fact Check', 'Africa Check', '2016', '2020', 'News Feed', 'misinformation', 'CNN', 'e-mail', 
-        '2012', 'false news', 'twitter.com', 'Viral Content', 'fact Checks', 'Facebook\'s', 
-        'Washington Post', 'Youtube', 'Internet', 'Instagram', 'fact-check', 'Fox News', 'June 15', 
-        'November 15', 'AFP', 'Screenshot', '2017'
+    # Exclude specific keywords
+    excluded_keywords = [ 
+         'fact check','Fact Check', 'false news','fact Checks','fact-check', 'fake news', 'Fact Checks', 'Fake news', 'Facebook Fact-checks', 'PunditFact'
     ]
 
-    # Filter out the excluded entities
-    df_filtered = df_filtre3[~df_filtre3['entity'].isin(excluded_entities)]
+    # Filter out the excluded keywords
+    df_filtered = df_filtre3[~df_filtre3['keywords'].isin(excluded_keywords)]
 
     # Aggregate counts of unique claims by date and label
-    unique_claims = df_filtered.drop_duplicates(subset=['id1'])
+    unique_claims = df_filtre3.drop_duplicates(subset=['id1'])
     total_counts = unique_claims.groupby(['date1', 'label']).size().reset_index(name='counts')
-    
-    # Find the most recurrent entity for each date-label combination
-    entity_counts = df_filtered.groupby(['date1', 'label', 'entity']).size().reset_index(name='counts')
-    most_recurrent_entity = entity_counts.loc[entity_counts.groupby(['date1', 'label'])['counts'].idxmax()].reset_index(drop=True)
+    # Find the most recurrent keyword for each date-label combination
+    keyword_counts = df_filtered.groupby(['date1', 'label', 'keywords']).size().reset_index(name='counts')
+    most_recurrent_keyword = keyword_counts.loc[keyword_counts.groupby(['date1', 'label'])['counts'].idxmax()].reset_index(drop=True)
 
     # Calculate total counts for each date across all labels
     total_counts_all = unique_claims.groupby(['date1']).size().reset_index(name='counts')
     total_counts_all['label'] = 'ALL'
     
     # Find the most recurrent entity for each date across all labels
-    entity_counts_all = df_filtered.groupby(['date1', 'entity']).size().reset_index(name='counts')
-    most_recurrent_entity_all = entity_counts_all.loc[entity_counts_all.groupby(['date1'])['counts'].idxmax()].reset_index(drop=True)
-    most_recurrent_entity_all['label'] = 'ALL'
+    keyword_counts_all = df_filtered.groupby(['date1', 'keywords']).size().reset_index(name='counts')
+    most_recurrent_keyword_all = keyword_counts_all.loc[keyword_counts_all.groupby(['date1'])['counts'].idxmax()].reset_index(drop=True)
+    most_recurrent_keyword_all['label'] = 'ALL'
 
-    # Merge total counts with most recurrent entity info for each label
-    merged_data = pandas.merge(total_counts, most_recurrent_entity, on=['date1', 'label'], suffixes=('', '_most_recurrent'))
+    # Merge total counts with most recurrent keyword info for each label
+    merged_data = pandas.merge(total_counts, most_recurrent_keyword, on=['date1', 'label'], suffixes=('', '_most_recurrent'))
 
-    # Combine total counts and most recurrent entity info for 'ALL' label
-    merged_data_all = pandas.merge(total_counts_all, most_recurrent_entity_all, on=['date1', 'label'], suffixes=('', '_most_recurrent'))
+    # Combine total counts and most recurrent keyword info for 'ALL' label
+    merged_data_all = pandas.merge(total_counts_all, most_recurrent_keyword_all, on=['date1', 'label'], suffixes=('', '_most_recurrent'))
     merged_data = pandas.concat([merged_data, merged_data_all], ignore_index=True)
-
+    merged_data['popularity_percentage'] = (merged_data['counts_most_recurrent'] / merged_data['counts']) * 100
+    merged_data['popularity_percentage']= merged_data['popularity_percentage'].round(2)
     return merged_data
 
 
 #fourth dashboard graph function with filtered
 def langue_per_label(dat1, dat2):
-
     filtre = df_simple['reviewBodyLang'].notna()
     df_filtre = df_simple[filtre] 
     filtre2 = df_filtre['label'].notna()
     df_filtre2 = df_filtre[filtre2]
     filtre3 = df_filtre2['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_filtre2['date1'].notna()
     df_filtre2 = df_filtre2[filtre3]
-
     if dat1 is not None: 
         df_filtre2 = df_filtre2[(df_filtre['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
-
     filtre_group_notna = df_filtre2.groupby(['id1','reviewBodyLang', 'label'])['reviewBodyLang'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
-
     return final_grouped
 
 
@@ -448,14 +431,13 @@ def dico_numbers_resume():
          "Numbers of claims review ": str(total[1]),
          "Since ": str(get_dates()[0]), "to ": str(get_dates()[1]),
          "Numbers of entities ": str(numbers_of_entities()),
-         }]
+        }]
 
     list_json = json.dumps(list)
     return list_json
 
 ########################################################################    JSON FUNCTION WITH PARAMETER     ###################################################################
 
-import ast
 # Converts a string representation of a set to a list of its elements.
 def string_to_set(string):
     set_str = ast.literal_eval(string)
@@ -490,8 +472,6 @@ def list_resume_borne_date1_date2_entity(date1, date2):
 
     return json_data
 
-
-
 #JSON third graph dashboard with filtered 
 def list_resume_born_source_label(dat1, dat2):
 
@@ -502,7 +482,6 @@ def list_resume_born_source_label(dat1, dat2):
 
     return json_data
 
-
 #JSON first graph dashboard with filtered 
 def list_resume_born_per_date_label(dat1, dat2, granularite):
 
@@ -512,7 +491,6 @@ def list_resume_born_per_date_label(dat1, dat2, granularite):
     json_data= json.dumps(parsed_data)
 
     return json_data 
-
 
 #json for sixth function 
 def list_resume_born_topics(date1=None, date2=None):
@@ -541,7 +519,7 @@ def list_resume_born_topics(date1=None, date2=None):
 #####################  THIS PART IS FOR TOPIC GRAPHS #################
 def common_categories():
     df_topic_cleaned = df_topic.dropna(subset=['topic'])
-    df_topic_cleaned['topic'] = df_topic_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
+    df_topic_cleaned.loc[:, 'topic'] = df_topic_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
     df_filtered = df_topic_cleaned[df_topic_cleaned['topic'].str.contains(",")]
     topic_counts = Counter(df_filtered['topic'])
     top_topics = topic_counts.most_common(40)
