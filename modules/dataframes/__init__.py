@@ -121,6 +121,7 @@ def generate_dataframes():
 
     # Dataframe entities
     df_entities = pandas.concat([df_entities1, df_entities2]).drop_duplicates().reset_index(drop=True)
+    # Convert to strings to avoide errors
     df_date_label_langue_sources_entity = pandas.merge(df_entities, df_date_label_langue_sources, on=['id1','id2'], how='outer')
     df_entity = df_date_label_langue_sources_entity
 

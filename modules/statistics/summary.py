@@ -696,6 +696,7 @@ def extract_topics():
 
 def filter_data_entity(selectedEntities, firstDate=None, lastDate=None):
     # Filter by entities case-insensitively
+    df_entity['entity'] = df_entity['entity'].astype(str)
     entity_filter = df_entity['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
     filtered_df = df_entity[entity_filter]
     filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
