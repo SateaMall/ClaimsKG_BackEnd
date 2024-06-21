@@ -519,6 +519,8 @@ def list_resume_born_topics(date1=None, date2=None):
 #####################  THIS PART IS FOR TOPIC GRAPHS #################
 def common_categories():
     df_topic_cleaned = df_topic.dropna(subset=['topic'])
+    df_topic_cleaned = df_topic_cleaned[df_topic_cleaned['label'] == 'false']
+
     df_topic_cleaned.loc[:, 'topic'] = df_topic_cleaned['topic'].apply(lambda x: ', '.join([cat.strip() for cat in x.split(',') if cat.strip()]))
     df_filtered = df_topic_cleaned[df_topic_cleaned['topic'].str.contains(",")]
     topic_counts = Counter(df_filtered['topic'])

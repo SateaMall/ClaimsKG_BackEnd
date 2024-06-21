@@ -1,5 +1,6 @@
 import csv
 from copy import deepcopy
+import numpy as np
 import pandas 
 from SPARQLWrapper import SPARQLWrapper, JSON
 
@@ -110,6 +111,11 @@ def generate_dataframes():
     df_date_label_langue = pandas.merge(df_date_label, df_langue, on=['id1'], how='outer')
     df_date_label_langue_sources = pandas.merge(df_date_label_langue, df_sources, on=['id1'], how='outer')
     
+
+    # Pretreament Temporary since we have a source that doesn't have a an @ar "Fatabayano"
+    condition = (df_date_label_langue_sources['reviewBodyLang'].isna()) & (df_date_label_langue_sources['source'] == 'fatabyyano')
+    df_date_label_langue_sources.loc[condition, 'reviewBodyLang'] = 'ar'
+    
     # Dataframe simple
     df_simple = df_date_label_langue_sources
 
@@ -117,6 +123,10 @@ def generate_dataframes():
     df_entities = pandas.concat([df_entities1, df_entities2]).drop_duplicates().reset_index(drop=True)
     df_date_label_langue_sources_entity = pandas.merge(df_entities, df_date_label_langue_sources, on=['id1','id2'], how='outer')
     df_entity = df_date_label_langue_sources_entity
+
+    # Pretreatement
+    df_entity['entity'] = df_entity['entity'].astype(str).fillna('')
+
 
     # Dataframe keywords
     df_date_label_langue_sources_keyword=pandas.merge(df_date_label_langue_sources, df_keywords, on=['id2'], how='outer')

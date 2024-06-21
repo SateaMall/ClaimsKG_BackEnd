@@ -18,8 +18,6 @@ df_keyword = pandas.read_csv(file_path_keyword, dtype={"id1": str, "id2": str, "
 file_path_topic = (base_path / "df_topic.tsv").resolve()
 df_topic = pandas.read_csv(file_path_topic, delimiter='\t', header=0,encoding='latin-1')
 
+#Pretreatements:
 df_topic['entity'] = df_topic['entity'].fillna('').astype(str)
 df_topic['entity'] = df_topic['entity'].apply(lambda x: x.split('/')[-1].replace('_', ' ') if isinstance(x, str) and x else '')
-
-# Ensure the 'entity' column is string type and fill NaN with an empty string
-df_entity['entity'] = df_entity['entity'].astype(str).fillna('')
