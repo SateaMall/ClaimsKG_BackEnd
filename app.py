@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 import langcodes
 from modules.dataframes import generate_dataframes
-from modules.statistics.summary import create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, suggestionsEntityTopic, top_categories_separated
+from modules.statistics.summary import create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, search_entity_first_graph, suggestionsEntityTopic, top_categories_separated
 from modules.statistics.summary import suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -98,7 +98,6 @@ def entity():
 @app.route("/json_per_entity_date1_date2/<date1>/<date2>")
 def json_born_entity_date(date1=None, date2=None):
     return list_resume_borne_date1_date2_entity(date1, date2)
-
 
 #fourth dashboard graph function with filtered
 @app.route("/json_per_langue_label")
@@ -197,20 +196,16 @@ def suggestions_entity_topic():
     topic = request.args.get('topic')
     return suggestionsEntityTopic(query,topic)
 
-
-
-# search part graph 
+### Search part first graph 
 @app.route('/search-entity1', methods=['GET'])
 def search_entity1():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
-    grouped_df = filtered_df.groupby(['date1', 'label']).size().reset_index(name='counts')
-    grouped_df['date1'] = grouped_df['date1'].astype(str)
+    filtered_df_entity = filter_data_entity(selectedEntities, firstDate, lastDate)
+    grouped_df = search_entity_first_graph(filtered_df_entity, selectedEntities)
     data = grouped_df.to_dict(orient='records')
     return jsonify(data)
-
 
 ### Search form (Entity)
 @app.route('/search-entity2', methods=['GET'])
