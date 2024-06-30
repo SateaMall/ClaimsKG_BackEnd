@@ -87,6 +87,14 @@ def generate_dataframes():
            ?source_temp schema:name ?source.
                                     """, "distinct ?id1 ?source")
     
+
+    qurl = SparQLOffsetFetcher(sparql, 10000, prefixes,
+                                    """
+           ?id1 a schema:ClaimReview.
+           ?id1 schema:url ?claimReview_url.
+                                    """, "distinct ?id1 ?claimReview_url")
+    
+
     qwords = SparQLOffsetFetcher(sparql, 10000, prefixes,
                                  """
                     ?id2 a schema:CreativeWork.
@@ -104,7 +112,7 @@ def generate_dataframes():
     df_label = get_sparql_dataframe(qulabel)
     df_dates_cr = get_sparql_dataframe(qudates_cr)
     df_sources = get_sparql_dataframe(qusources)
-
+    df_urls = get_sparql_dataframe(qurl)
 
 
     df_date_label=pandas.merge(df_label, df_dates_cr, on=['id1'], how='outer')
@@ -131,13 +139,14 @@ def generate_dataframes():
 
     # Dataframe keywords
     df_date_label_langue_sources_keyword=pandas.merge(df_date_label_langue_sources, df_keywords, on=['id2'], how='outer')
-    df_complete_keywords = df_date_label_langue_sources_keyword
+    df_date_label_langue_sources_keyword_url=pandas.merge(df_date_label_langue_sources_keyword,df_urls, on=['id1'], how='outer')
+    df_complete_keywords = df_date_label_langue_sources_keyword_url
 
 
     
 
 
-    # dataframe to csv
+    # Dataframe to csv
     df_entity.to_csv('modules/df_entity.csv', quoting=csv.QUOTE_NONNUMERIC, index=False)
     df_complete_keywords.to_csv('modules/df_keyword.csv', quoting=csv.QUOTE_NONNUMERIC, index=False)
     df_simple.to_csv('modules/df_simple.csv', quoting=csv.QUOTE_NONNUMERIC, index=False)

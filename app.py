@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request
 import langcodes
+import pandas
 from modules.dataframes import generate_dataframes
-from modules.statistics.summary import create_graph_data, extract_topics, filter_data_entity, filter_data_topic, filter_data_topic_entity, search_entity_first_graph, suggestionsEntityTopic, top_categories_separated
+from modules.statistics.summary import create_graph_data, extract_topics, filter_data_entity, filter_data_topic, search_entity_first_graph, suggestionsEntityTopic, top_categories_separated
 from modules.statistics.summary import suggestions
 from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
@@ -22,6 +23,10 @@ from modules.statistics.summary import dico_numbers_resume
 from flask_cors import CORS
 from modules.statistics.summary import entity
 from modules.statistics.summary import entity2
+from modules.dataframes.dataframe_singleton import df_simple
+from modules.dataframes.dataframe_singleton import df_keyword
+from modules.dataframes.dataframe_singleton import df_entity
+from modules.dataframes.dataframe_singleton import df_topic
 
 
 app = Flask(__name__)
@@ -202,8 +207,8 @@ def search_entity1():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    filtered_df_entity = filter_data_entity(selectedEntities, firstDate, lastDate)
-    grouped_df = search_entity_first_graph(filtered_df_entity, selectedEntities)
+    filtered_df_entity = filter_data_entity(df_entity, selectedEntities, firstDate, lastDate)
+    grouped_df = search_entity_first_graph(filtered_df_entity,  selectedEntities = selectedEntities)
     data = grouped_df.to_dict(orient='records')
     return jsonify(data)
 
@@ -213,8 +218,8 @@ def search_entity2():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
-    grouped_df = filtered_df.groupby('label').size().reset_index(name='counts')
+    filtered_df_entity = filter_data_entity(df_entity, selectedEntities, firstDate, lastDate)
+    grouped_df = filtered_df_entity.groupby('label').size().reset_index(name='counts')
     data = grouped_df.to_dict(orient='records')
     return jsonify(data)
 
@@ -223,8 +228,8 @@ def search_entity3():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
-    grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
+    filtered_df_entity = filter_data_entity(df_entity, selectedEntities, firstDate, lastDate)
+    grouped_df = filtered_df_entity.groupby(['source', 'label']).size().reset_index(name='counts')
 
     #Sort
     source_totals = grouped_df.groupby('source')['counts'].sum().reset_index(name='total_counts')
@@ -239,10 +244,10 @@ def search_entity4():
     selectedEntities = request.args.getlist('selectedEntities')
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
-    filtered_df = filter_data_entity(selectedEntities, firstDate, lastDate)
-     # Convert language codes to full language names
-    filtered_df['reviewBodyLang'] = filtered_df['reviewBodyLang'].apply(convert_lang_code_to_name)
-    grouped_df = filtered_df.groupby(['reviewBodyLang', 'label']).size().reset_index(name='counts')
+    filtered_df_entity = filter_data_entity(df_entity, selectedEntities, firstDate, lastDate)
+    # Convert language codes to full language names
+    filtered_df_entity['reviewBodyLang'] = filtered_df_entity['reviewBodyLang'].apply(convert_lang_code_to_name)
+    grouped_df = filtered_df_entity.groupby(['reviewBodyLang', 'label']).size().reset_index(name='counts')
     data = grouped_df.to_dict(orient='records')
     return jsonify(data)
 
@@ -261,10 +266,9 @@ def search_topic1():
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     filtered_df = filter_data_topic(topic, firstDate, lastDate)
-    grouped_df = filtered_df.groupby(['date1', 'label']).size().reset_index(name='counts')
-    grouped_df['date1'] = grouped_df['date1'].astype(str)
-    grouped_df['label'] = grouped_df['label'].str.upper()
-    grouped_df['total'] = grouped_df.groupby('date1')['counts'].transform('sum')
+    ## Link topic with keywords
+    merged_df = pandas.merge(filtered_df, df_keyword[['claimReview_url','id2']], on='claimReview_url', how='left')
+    grouped_df = search_entity_first_graph(merged_df, topic=topic)
     data = grouped_df.to_dict(orient='records')
     return jsonify(data)
 
@@ -322,11 +326,13 @@ def search_entity_topic1():
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     topic = request.args.get('topic')
-    filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
-    grouped_df = filtered_df.groupby(['date1', 'label']).size().reset_index(name='counts')
-    grouped_df['date1'] = grouped_df['date1'].astype(str)
-    grouped_df['label'] = grouped_df['label'].str.upper()
-    grouped_df['total'] = grouped_df.groupby('date1')['counts'].transform('sum')
+    filtered_df_topic = filter_data_topic(topic, firstDate, lastDate)
+    filtered_df_topic['id1'] = filtered_df_topic['claimReview_url']
+    filtered_df_entity_topic = filter_data_entity(filtered_df_topic, selectedEntities, firstDate, lastDate)
+    
+    ## Link topic with keywords
+    merged_df = pandas.merge(filtered_df_entity_topic, df_keyword[['claimReview_url','id2']], on='claimReview_url', how='left')
+    grouped_df = search_entity_first_graph(merged_df, selectedEntities = selectedEntities,topic = topic)
     data = grouped_df.to_dict(orient='records')
     return jsonify(data)
 
@@ -337,7 +343,9 @@ def search_entity_topic2():
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     topic = request.args.get('topic')
-    filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
+    filtered_df_topic = filter_data_topic(topic, firstDate, lastDate)
+    filtered_df_topic['id1'] = filtered_df_topic['claimReview_url']
+    filtered_df = filter_data_entity(filtered_df_topic, selectedEntities, firstDate, lastDate)
     grouped_df = filtered_df.groupby('label').size().reset_index(name='counts')
     grouped_df['label'] = grouped_df['label'].str.upper()
     data = grouped_df.to_dict(orient='records')
@@ -351,10 +359,11 @@ def search_entity_topic3():
     firstDate = request.args.get('firstDate')
     lastDate = request.args.get('lastDate')
     topic = request.args.get('topic')
-    filtered_df = filter_data_topic_entity(selectedEntities, topic, firstDate, lastDate)
+    filtered_df_topic = filter_data_topic(topic, firstDate, lastDate)
+    filtered_df_topic['id1'] = filtered_df_topic['claimReview_url']
+    filtered_df = filter_data_entity(filtered_df_topic, selectedEntities, firstDate, lastDate)
     grouped_df = filtered_df.groupby(['source', 'label']).size().reset_index(name='counts')
     grouped_df['label'] = grouped_df['label'].str.upper()
-
     #Sort
     source_totals = grouped_df.groupby('source')['counts'].sum().reset_index(name='total_counts')
     sorted_sources = source_totals.sort_values(by='total_counts', ascending=False)['source']
