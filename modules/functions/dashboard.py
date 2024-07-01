@@ -2,74 +2,12 @@ from collections import defaultdict
 import json
 from typing import Counter
 import ast
-from flask import current_app, jsonify
 import pandas
-import numpy as np
-from langcodes import Language
 from itertools import combinations
 from modules.dataframes.dataframe_singleton import df_simple
 from modules.dataframes.dataframe_singleton import df_keyword
 from modules.dataframes.dataframe_singleton import df_entity
 from modules.dataframes.dataframe_singleton import df_topic
-
-import nltk
-from nltk.corpus import wordnet
-from nltk.data import find
-import os
-
-#################################################   HOME page function   #########################################
-
-def claims_total():
-    nb_cw_total = len(df_simple['id2'].unique())
-    nb_cr_total = len(df_simple['id1'].unique())
-    return nb_cw_total, nb_cr_total
-
-def get_dates():
-    min1 = pandas.to_datetime(df_simple['date1'].dropna(), errors='coerce').min()
-    max1 = pandas.to_datetime(df_simple['date1'].dropna(), errors='coerce').max()
-    min1 = min1.strftime('%B %d, %Y')
-    max1 = max1.strftime('%B %d, %Y')
-    return min1, max1
-
-def numbers_of_entities():
-    nb_entities = len(df_entity['entity'].dropna().unique())
-    return nb_entities
-
-
-######################################################################  SUMMARY FUNCTION  ###########################################################################
-
-def number_label_false(date1, date2):
-    df_filtre = df_simple
-    df_filtre = df_filtre[(df_filtre['label'] == 'FALSE')]
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-def number_label_true(date1, date2):
-    df_filtre = df_simple
-    df_filtre = df_filtre[(df_filtre['label'] == 'TRUE')]
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-def number_label_mixture(date1, date2):
-    df_filtre = df_simple
-    df_filtre = df_filtre[(df_filtre['label'] == 'MIXTURE')]
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
-def number_label_other(date1, date2):
-    df_filtre = df_simple
-    df_filtre = df_filtre[(df_filtre['label'] == 'OTHER')]
-    if date1 is not None: 
-        df_filtre = df_filtre[(df_filtre['date1'] >= date1) & (df_filtre['date1'] <= date2)]
-    nb_cw_total = len(df_filtre['id1'].unique())
-    return nb_cw_total
-
 
 ############################################################   GRAPH FUNCTION WITHOUT PARAMETER  #####################################################################
 
@@ -221,19 +159,12 @@ def langue_per_label(dat1, dat2):
         df_filtre2 = df_filtre2[(df_filtre['date1'] >= dat1) & (df_filtre2['date1'] <= dat2)]
     filtre_group_notna = df_filtre2.groupby(['id1','reviewBodyLang', 'label'])['reviewBodyLang'].size().reset_index(name='counts')
     final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
+    print(final_grouped)
     return final_grouped
 
 
 
 
-#################################################################    LANGUAGE CODE CHANGE FUNCTION    #######################################################
-
-def changecode_langue(code):
-    try:
-        lang = Language.get(code)
-        return lang.display_name()
-    except ValueError:
-        return code
 
 #################################################################   FOR A FUTUR SEARCH PART FUNCTION   #########################################################################
 
@@ -319,43 +250,6 @@ def entite_per_source_filtre_per_date(entity, source, dat1, dat2):
 
 ###################################################################################   JSON    ######################################################################################""
 
-
-##########################################################################  JSON FOR A FUTUR SEARCH PART  ############################################################################### 
-
-
-def list_resume_entite_per_label_filtre_per_date(label, date1, date2):
-
-    call_function = entite_per_label_filtre_per_date(label, date1, date2)
-    parsed_data = call_function.to_dict(orient='records')
-
-    json_format = json.dumps(parsed_data)
-
-    return json_format
-
-def list_resume_entite_per_langue_filtre_per_date(entity, langue, date1, date2):
-
-    call_function = entite_per_langue_filtre_per_date(entity, langue, date1, date2)
-    parsed_data = call_function.to_dict(orient='records')
-    for item in parsed_data:
-        language_code = item['reviewBodyLang']  
-        language_name = changecode_langue(language_code)
-        item['reviewBodyLang'] = language_name
-
-    json_format = json.dumps(parsed_data)
-
-    return json_format
-
-def list_resume_entite_per_source_filtre_per_date(entity, source, date1, date2):
-
-    call_function = entite_per_source_filtre_per_date(entity, source, date1, date2)
-    parsed_data = call_function.to_dict(orient='records')
-
-    json_format = json.dumps(parsed_data)
-
-    return json_format
-
-
-
 ########################################################################## JSON FUNCTION WITHOUT PARAMETER  ############################################################################
 
 
@@ -393,55 +287,7 @@ def entity2():
 
 
 
-###########################################################################   JSON SUMMARY FUNCTION    ###########################################################################
 
-
-#### DASHBOARD
-
-def json_number_false(date1, date2):
-   
-   return ( {
-    "counts": str(number_label_false(date1, date2))
-    })
-
-
-def json_number_true(date1, date2):
-
-    return ( {
-    "counts": str(number_label_true(date1, date2))
-    })
-
-def json_number_mixture(date1, date2):
-
-    return ( {
-    "counts": str(number_label_mixture(date1, date2))
-    })
-
-def json_number_other(date1, date2):
-
-   return ( {
-    "counts": str(number_label_other(date1, date2))
-    })
-
-
-#### HOME-PAGE
-
-def dico_numbers_resume():
-    total = claims_total()
-    list = [
-        {"Numbers of claims ": str(total[0]),
-         "Numbers of claims review ": str(total[1]),
-         "Since ": str(get_dates()[0]), "to ": str(get_dates()[1]),
-         "Numbers of entities ": str(numbers_of_entities()),
-        }]
-
-    list_json = json.dumps(list)
-        # Example usage
-    word = "corona"
-    synonyms = get_synonyms(word)
-    print(word)
-    print(synonyms)
-    return list_json
 
 ########################################################################    JSON FUNCTION WITH PARAMETER     ###################################################################
 
@@ -456,17 +302,9 @@ def string_to_set(string):
 
 #JSON fourth graph dashboard with filtered 
 def list_resume_claims_per_langues(date1 ,date2):
-
     function_call = langue_per_label(date1, date2)
     parsed_data = function_call.to_dict(orient='records')
-
-    for item in parsed_data:
-        language_code = item['reviewBodyLang']  
-        language_name = changecode_langue(language_code)
-        item['reviewBodyLang'] = language_name
-
     json_data = json.dumps(parsed_data) 
-
     return json_data
 
 #JSON second graph dashboard with filtered 
@@ -591,7 +429,7 @@ def top_categories_separated(nbr_categories=60):
 
 
 '''
-This version returns the weight of every single topic 
+This version returns the weight of every single topic with the relations between topics (for the network graph)
 
 
 
@@ -634,236 +472,3 @@ def create_graph_data():
 
     return nodes, edges_mapped
 '''
-
-################################################################################    SEARCH PART    #############################################################################
-
-
-### Suggestions for the searching part 
-
-## This will return entities that has at least 3 entities prioritizing the most popular entities and the exact entity searched if it exists
-def suggestions(query):
-    try:
-        # Normalize case and filter entries
-        suggestions = df_entity[df_entity['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
-        suggestions_lower = suggestions.str.lower()
-        # Count occurrences and filter
-        entity_counts = suggestions_lower.value_counts()
-        # Filter original DataFrame for entities that appear 3 or more times
-        frequent_entities = entity_counts[entity_counts >= 3]
-        # Sort entities by count (descending) and length of entity name (ascending)
-        frequent_entities_sorted = sorted(frequent_entities.items(), key=lambda x: (-x[1], len(x[0])))
-        # Check if the normalized query exists in the frequent entities and prioritize it
-        normalized_query = query.lower()
-        result = [entity[0] for entity in frequent_entities_sorted]
-        # If the query exists in the results, prioritize it
-        if normalized_query in result:
-            # Move the query to the front of the list
-            result.insert(0, result.pop(result.index(normalized_query)))
-        return jsonify(result)
-
-    except Exception as e:
-        current_app.logger.error(f'Error processing request: {str(e)}')
-        return jsonify(error=str(e)), 500
-    
-def suggestionsEntityTopic(query,topic):
-    try:
-        # Normalize case and filter entries
-        df_topic['topic'] = df_topic['topic'].astype(str).fillna('')
-        topic_filter = df_topic['topic'].str.contains(topic, case=False, na=False)
-        filtered_df = df_topic[topic_filter]
-        suggestions = filtered_df[filtered_df['entity'].fillna('').str.contains(query, case=False, na=False)]['entity']
-        suggestions_lower = suggestions.str.lower()
-        # Count occurrences and filter
-        entity_counts = suggestions_lower.value_counts()
-        # Filter original DataFrame for entities that appear 3 or more times
-        frequent_entities = entity_counts[entity_counts >= 3]
-        # Sort entities by count (descending) and length of entity name (ascending)
-        frequent_entities_sorted = sorted(frequent_entities.items(), key=lambda x: (-x[1], len(x[0])))
-        # Check if the normalized query exists in the frequent entities and prioritize it
-        normalized_query = query.lower()
-        result = [entity[0] for entity in frequent_entities_sorted]
-        # If the query exists in the results, prioritize it
-        if normalized_query in result:
-            # Move the query to the front of the list
-            result.insert(0, result.pop(result.index(normalized_query)))
-        return jsonify(result)
-
-    except Exception as e:
-        current_app.logger.error(f'Error processing request: {str(e)}')
-        return jsonify(error=str(e)), 500
-
-## Retreive themes 
-def extract_topics():
-    unique_topics = set()
-    for prediction in df_topic['topic']:
-        if isinstance(prediction, str):
-            topics = [topic.strip() for topic in prediction.split(',') if topic.strip()]
-            unique_topics.update(topics)
-    return jsonify(list(unique_topics))
-
-def filter_data_entity(data_frame: pandas.DataFrame, selectedEntities, firstDate=None, lastDate=None):
-    data_frame['entity'] = data_frame['entity'].astype(str)
-    entity_filter = data_frame['entity'].apply(lambda x: any(entity.lower() in x.lower() for entity in selectedEntities))
-    filtered_df = data_frame[entity_filter]
-    filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
-    # Filter by date range if provided
-    if firstDate and lastDate:
-        filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
-
-    filtered_df = filtered_df.drop_duplicates(subset='id1')
-        # Resample by month
-    filtered_df['date1'] = filtered_df['date1'].dt.to_period('M')
-    return filtered_df
-
-def filter_data_topic(topic, firstDate=None, lastDate=None):
-    df_topic['topic'] = df_topic['topic'].astype(str).fillna('')
-    topic_filter = df_topic['topic'].str.contains(topic, case=False, na=False)
-    filtered_df = df_topic[topic_filter]
-    filtered_df['date1'] = pandas.to_datetime(filtered_df['date1'], errors='coerce')
-    if firstDate and lastDate:
-        filtered_df = filtered_df[(filtered_df['date1'] >= firstDate) & (filtered_df['date1'] <= lastDate)]
-
-    # Resample by month
-    filtered_df['date1'] = filtered_df['date1'].dt.to_period('M')
-
-    return filtered_df
-def get_synonyms(word):
-    download_nltk_data()
-    synonyms = set()
-    for syn in wordnet.synsets(word):
-        for lemma in syn.lemmas():
-            synonyms.add(lemma.name().replace('_', ' '))
-    return list(synonyms)
-
-def download_nltk_data():
-    try:
-        find('corpora/wordnet.zip')
-    except LookupError:
-        nltk.download('wordnet')
-    try:
-        find('corpora/omw-1.4.zip')
-    except LookupError:
-        nltk.download('omw-1.4')
-    
-
-
-def search_entity_first_graph(df_filtered_entity, selectedEntities = [], topic=None):
-    # Exclude specific keywords
-    excluded_keywords = [ 
-        'fact check', 'false news', 'fact-check', 'fact checks', 'fake news', 'facebook fact-checks', 'punditfact','the news', 'facebook posts', 'online'
-    ]
-    # Create additional exclusions for each individual word in selected entities
-    additional_exclusions = [word.lower() for entity in selectedEntities for word in entity.split()]
-    # Combine excluded keywords with selected entities and additional exclusions, and convert to lowercase
-    all_exclusions = [keyword.lower() for keyword in excluded_keywords] +additional_exclusions + [entity.lower() for entity in selectedEntities]
-    if topic :
-        all_exclusions.append(topic.lower())
-
-    # Filter df_keywords based on df_filtered_entity.id1
-    df_keywords_filtered = df_keyword[df_keyword['id2'].isin(df_filtered_entity['id2'])]
-
-    # Convert the 'keywords' column to lowercase for comparison
-    df_keywords_filtered['keywords_lower'] = df_keywords_filtered['keywords'].str.lower()
-
-    # Filter out the rows where 'keywords_lower' is in all_exclusions
-    df_filtered = df_keywords_filtered[~df_keywords_filtered['keywords_lower'].isin(all_exclusions)]
-
-    # Drop the temporary 'keywords_lower' column
-    df_filtered.drop(columns=['keywords_lower'], inplace=True)
-
-    # Convert date to month and year format
-    df_filtered['month_year'] = pandas.to_datetime(df_filtered['date1']).dt.to_period('M')
-    unique_claims = df_keywords_filtered.drop_duplicates(subset=['id1'])
-    unique_claims['month_year'] = pandas.to_datetime(unique_claims['date1']).dt.to_period('M')
-
-    # Aggregate counts of unique claims by month-year and label
-    total_counts = unique_claims.groupby(['month_year', 'label']).size().reset_index(name='counts')
-
-    # Find the most recurrent keyword for each month-year-label combination
-    keyword_counts = df_filtered.groupby(['month_year', 'label', 'keywords']).size().reset_index(name='counts')
-    most_recurrent_keyword = keyword_counts.loc[keyword_counts.groupby(['month_year', 'label'])['counts'].idxmax()].reset_index(drop=True)
-
-    # Calculate total counts for each month-year across all labels
-    total_counts_all = unique_claims.groupby(['month_year']).size().reset_index(name='counts')
-    total_counts_all['label'] = 'ALL'
-
-    # Find the most recurrent entity for each month-year across all labels
-    keyword_counts_all = df_filtered.groupby(['month_year', 'keywords']).size().reset_index(name='counts')
-    most_recurrent_keyword_all = keyword_counts_all.loc[keyword_counts_all.groupby(['month_year'])['counts'].idxmax()].reset_index(drop=True)
-    most_recurrent_keyword_all['label'] = 'ALL'
-
-    # Merge total counts with most recurrent keyword info for each label
-    merged_data = pandas.merge(total_counts, most_recurrent_keyword, on=['month_year', 'label'], suffixes=('', '_most_recurrent'))
-
-    # Combine total counts and most recurrent keyword info for 'ALL' label
-    merged_data_all = pandas.merge(total_counts_all, most_recurrent_keyword_all, on=['month_year', 'label'], suffixes=('', '_most_recurrent'))
-    merged_data = pandas.concat([merged_data, merged_data_all], ignore_index=True)
-    merged_data['popularity_percentage'] = (merged_data['counts_most_recurrent'] / merged_data['counts']) * 100
-    merged_data['popularity_percentage'] = merged_data['popularity_percentage'].round(2)
-    # Convert 'month_year' to string format for JSON serialization
-    merged_data['month_year'] = merged_data['month_year'].astype(str)
-    merged_data.rename(columns={'month_year': 'date1'}, inplace=True)
-
-
-    return merged_data
-
-
-
-def search_entity_topic_first_graph(df_filtered_entity, selectedEntities):
-    # Exclude specific keywords
-    excluded_keywords = [ 
-        'fact check', 'false news', 'fact-check', 'fact checks', 'fake news', 'facebook fact-checks', 'punditfact'
-    ]
-    # Create additional exclusions for each individual word in selected entities
-    additional_exclusions = [word.lower() for entity in selectedEntities for word in entity.split()]
-
-    # Combine excluded keywords with selected entities and additional exclusions, and convert to lowercase
-    all_exclusions = [keyword.lower() for keyword in excluded_keywords] + additional_exclusions + [entity.lower() for entity in selectedEntities]
-
-    # Filter df_keywords based on df_filtered_entity.claimReview_url
-    df_keywords_filtered = df_keyword[df_keyword['claimReview_url'].isin(df_filtered_entity['claimReview_url'])]
-
-    # Convert the 'keywords' column to lowercase for comparison
-    df_keywords_filtered['keywords_lower'] = df_keywords_filtered['keywords'].str.lower()
-
-    # Filter out the rows where 'keywords_lower' is in all_exclusions
-    df_filtered = df_keywords_filtered[~df_keywords_filtered['keywords_lower'].isin(all_exclusions)]
-
-    # Drop the temporary 'keywords_lower' column
-    df_filtered.drop(columns=['keywords_lower'], inplace=True)
-
-    # Convert date to month and year format
-    df_filtered['month_year'] = pandas.to_datetime(df_filtered['date1']).dt.to_period('M')
-    unique_claims = df_keywords_filtered.drop_duplicates(subset=['claimReview_url'])
-    unique_claims['month_year'] = pandas.to_datetime(unique_claims['date1']).dt.to_period('M')
-
-    # Aggregate counts of unique claims by month-year and label
-    total_counts = unique_claims.groupby(['month_year', 'label']).size().reset_index(name='counts')
-
-    # Find the most recurrent keyword for each month-year-label combination
-    keyword_counts = df_filtered.groupby(['month_year', 'label', 'keywords']).size().reset_index(name='counts')
-    most_recurrent_keyword = keyword_counts.loc[keyword_counts.groupby(['month_year', 'label'])['counts'].idxmax()].reset_index(drop=True)
-
-    # Calculate total counts for each month-year across all labels
-    total_counts_all = unique_claims.groupby(['month_year']).size().reset_index(name='counts')
-    total_counts_all['label'] = 'ALL'
-
-    # Find the most recurrent entity for each month-year across all labels
-    keyword_counts_all = df_filtered.groupby(['month_year', 'keywords']).size().reset_index(name='counts')
-    most_recurrent_keyword_all = keyword_counts_all.loc[keyword_counts_all.groupby(['month_year'])['counts'].idxmax()].reset_index(drop=True)
-    most_recurrent_keyword_all['label'] = 'ALL'
-
-    # Merge total counts with most recurrent keyword info for each label
-    merged_data = pandas.merge(total_counts, most_recurrent_keyword, on=['month_year', 'label'], suffixes=('', '_most_recurrent'))
-
-    # Combine total counts and most recurrent keyword info for 'ALL' label
-    merged_data_all = pandas.merge(total_counts_all, most_recurrent_keyword_all, on=['month_year', 'label'], suffixes=('', '_most_recurrent'))
-    merged_data = pandas.concat([merged_data, merged_data_all], ignore_index=True)
-    merged_data['popularity_percentage'] = (merged_data['counts_most_recurrent'] / merged_data['counts']) * 100
-    merged_data['popularity_percentage'] = merged_data['popularity_percentage'].round(2)
-    # Convert 'month_year' to string format for JSON serialization
-    merged_data['month_year'] = merged_data['month_year'].astype(str)
-    merged_data.rename(columns={'month_year': 'date1'}, inplace=True)
-
-
-    return merged_data

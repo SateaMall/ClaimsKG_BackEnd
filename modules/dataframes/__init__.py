@@ -1,5 +1,6 @@
 import csv
 from copy import deepcopy
+import langcodes
 import numpy as np
 import pandas 
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -17,6 +18,13 @@ sparql.setReturnFormat(JSON)
     # Note that pandas/NumPy uses the fact that np.nan != np.nan, and treats None like np.nan.
 
 
+    
+def convert_lang_code_to_name(lang_code):
+    try:
+        return langcodes.Language.get(lang_code).display_name()
+    except:
+        return lang_code
+    
 def get_sparql_dataframe(query: SparQLOffsetFetcher):
     """
     Helper function to convert SPARQL results into a Pandas data frame.
@@ -105,7 +113,6 @@ def generate_dataframes():
 
     df_keywords = get_sparql_dataframe(qwords)
     df_keywords['keywords'] = df_keywords['keywords'].apply(clean_keyword)
-
     df_entities1 = get_sparql_dataframe(quent1)
     df_entities2 = get_sparql_dataframe(quent2)
     df_langue = get_sparql_dataframe(qulang)
@@ -114,27 +121,30 @@ def generate_dataframes():
     df_sources = get_sparql_dataframe(qusources)
     df_urls = get_sparql_dataframe(qurl)
 
+    # Pretreatements
+    df_entities = pandas.concat([df_entities1, df_entities2]).drop_duplicates().reset_index(drop=True)
+    df_entities['entity'] = df_entities['entity'].astype(str).fillna('')
+    df_langue['reviewBodyLang'] = df_langue['reviewBodyLang'].apply(convert_lang_code_to_name)
+
 
     df_date_label=pandas.merge(df_label, df_dates_cr, on=['id1'], how='outer')
     df_date_label_langue = pandas.merge(df_date_label, df_langue, on=['id1'], how='outer')
     df_date_label_langue_sources = pandas.merge(df_date_label_langue, df_sources, on=['id1'], how='outer')
     
-
-    # Pretreament Temporary since we have a source that doesn't have a an @ar "Fatabayano"
+        # Pretreament Temporary since we have a source that doesn't have a an @ar "Fatabayano"
     condition = (df_date_label_langue_sources['reviewBodyLang'].isna()) & (df_date_label_langue_sources['source'] == 'fatabyyano')
-    df_date_label_langue_sources.loc[condition, 'reviewBodyLang'] = 'ar'
-    
+    df_date_label_langue_sources.loc[condition, 'reviewBodyLang'] = 'Arabic'
+
+
     # Dataframe simple
     df_simple = df_date_label_langue_sources
 
     # Dataframe entities
-    df_entities = pandas.concat([df_entities1, df_entities2]).drop_duplicates().reset_index(drop=True)
     # Convert to strings to avoide errors
     df_date_label_langue_sources_entity = pandas.merge(df_entities, df_date_label_langue_sources, on=['id1','id2'], how='outer')
     df_entity = df_date_label_langue_sources_entity
 
-    # Pretreatement
-    df_entity['entity'] = df_entity['entity'].astype(str).fillna('')
+
 
 
     # Dataframe keywords
