@@ -205,3 +205,27 @@ def search_entity_graph(filtered_df):
     )
     data = top_entities_df.to_dict(orient='records')
     return jsonify(data)
+
+def compare_entity_graph(df_1, df_2):
+
+    # Get entities from both dataframes and count occurrences
+    df_1_counts = df_1['entity'].value_counts().reset_index(name='counts')
+    df_1_counts = df_1_counts.rename(columns={'index': 'entity'})
+
+    df_2_counts = df_2['entity'].value_counts().reset_index(name='counts')
+    df_2_counts = df_2_counts.rename(columns={'index': 'entity'})
+
+    # Merge the counts on 'entity' to get entities present in both dataframes
+    merged_counts = pandas.merge(df_1_counts, df_2_counts, on='entity', suffixes=('_df1', '_df2'))
+
+    # Sum the counts from both dataframes
+    merged_counts['total_counts'] = merged_counts['counts_df1'] + merged_counts['counts_df2']
+
+    # Get the top 50 entities based on the total counts
+    top_entities_df = merged_counts.sort_values(by='total_counts', ascending=False).head(50)
+
+    # Select only the entity and total_counts columns for the final result
+    top_entities_df = top_entities_df[['entity', 'total_counts']]
+
+    data = top_entities_df.to_dict(orient='records')
+    return jsonify(data)

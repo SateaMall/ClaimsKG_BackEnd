@@ -3,7 +3,7 @@ import pandas
 from flask_cors import CORS
 from modules.dataframes import generate_dataframes
 from modules.functions.dashboard import create_graph_data, top_categories_separated
-from modules.functions.search_compare import search_entity_graph, search_language_graph, search_label_graph, search_source_graph, suggestions,  search_date_graph, suggestionsEntityTopic, extract_topics, filter_data_entity, filter_data_topic
+from modules.functions.search_compare import compare_entity_graph, search_entity_graph, search_language_graph, search_label_graph, search_source_graph, suggestions,  search_date_graph, suggestionsEntityTopic, extract_topics, filter_data_entity, filter_data_topic
 from modules.functions.statistics import dico_numbers_resume
 from modules.functions.statistics import json_number_false, json_number_other, json_number_true,  json_number_mixture
 from modules.functions.dashboard import list_resume_born_per_date_label
@@ -255,6 +255,18 @@ def search_entity_topic3():
     filtered_df = filter_data_entity(filtered_df_topic, selectedEntities, firstDate, lastDate)
     return search_source_graph(filtered_df)
 
+
+
+
+@app.route('/compare-topic-entities-common', methods=['GET'])
+def compare_topics():
+    topic1 = request.args.get('topic1')
+    topic2 = request.args.get('topic2')
+    firstDate = request.args.get('firstDate')
+    lastDate = request.args.get('lastDate')
+    filtered_df1 = filter_data_topic(topic1, firstDate, lastDate)
+    filtered_df2 = filter_data_topic(topic2, firstDate, lastDate)
+    return compare_entity_graph(filtered_df1,filtered_df2)
 
 if __name__ == '__main__':
     app.run(debug=True)
