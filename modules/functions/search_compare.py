@@ -98,35 +98,46 @@ def filter_data_topic(topic, firstDate=None, lastDate=None):
 
     return filtered_df
 
-
-def search_date_graph(df_filtered_entity, selectedEntities = [], topic=None):
+def search_date_graph(df_filtered_entity, selectedEntities=None, topic=None):
     # Exclude specific keywords
-    excluded_keywords = [ 
-        'fact check', 'false news', 'fact-check', 'fact checks', 'fake news', 'facebook fact-checks', 'punditfact','the news', 'facebook posts', 'online'
+    excluded_keywords = [
+        'fact check', 'false news', 'fact-check', 'fact checks', 'fake news', 'facebook fact-checks', 'punditfact', 'the news', 'facebook posts', 'online', 'viral content', 'tweet','tweets','facebook','facebooks'
     ]
-    # Create additional exclusions for each individual word in selected entities
-    additional_exclusions = [word.lower() for entity in selectedEntities for word in entity.split()]
-    # Combine excluded keywords with selected entities and additional exclusions, and convert to lowercase
-    all_exclusions = [keyword.lower() for keyword in excluded_keywords] +additional_exclusions + [entity.lower() for entity in selectedEntities]
+    # Create additional exclusions for each individual word in selected entities and topics 
+    if selectedEntities:
+        [excluded_keywords.extend(entity.split())for entity in selectedEntities]
+        excluded_keywords.extend(selectedEntities)
     if topic :
-        all_exclusions.append(topic.lower())
-
-    # Filter df_keywords based on df_filtered_entity.id1
+        excluded_keywords+= topic.split()
+        excluded_keywords.append(topic.lower())
+    all_exclusions = [keyword.lower() for keyword in excluded_keywords]
+    
+    # Filter df_keywords based on df_filtered_entity.id2
     df_keywords_filtered = df_keyword[df_keyword['id2'].isin(df_filtered_entity['id2'])]
 
     # Convert the 'keywords' column to lowercase for comparison
     df_keywords_filtered['keywords_lower'] = df_keywords_filtered['keywords'].str.lower()
 
+        
+    df_keywords_filtered = df_keywords_filtered.drop_duplicates(subset=['id1'])
     # Filter out the rows where 'keywords_lower' is in all_exclusions
     df_filtered = df_keywords_filtered[~df_keywords_filtered['keywords_lower'].isin(all_exclusions)]
 
     # Drop the temporary 'keywords_lower' column
     df_filtered.drop(columns=['keywords_lower'], inplace=True)
 
+    # Convert 'date1' to datetime, coercing errors to NaT
+    df_filtered['date1'] = pandas.to_datetime(df_filtered['date1'], errors='coerce')
+
+    # Drop rows where 'date1' is NaT
+    df_filtered = df_filtered.dropna(subset=['date1'])
+
     # Convert date to month and year format
-    df_filtered['month_year'] = pandas.to_datetime(df_filtered['date1']).dt.to_period('M')
+    df_filtered['month_year'] = df_filtered['date1'].dt.to_period('M')
     unique_claims = df_keywords_filtered.drop_duplicates(subset=['id1'])
-    unique_claims['month_year'] = pandas.to_datetime(unique_claims['date1']).dt.to_period('M')
+    unique_claims['date1'] = pandas.to_datetime(unique_claims['date1'], errors='coerce')
+    unique_claims = unique_claims.dropna(subset=['date1'])
+    unique_claims['month_year'] = unique_claims['date1'].dt.to_period('M')
 
     # Aggregate counts of unique claims by month-year and label
     total_counts = unique_claims.groupby(['month_year', 'label']).size().reset_index(name='counts')
@@ -152,13 +163,13 @@ def search_date_graph(df_filtered_entity, selectedEntities = [], topic=None):
     merged_data = pandas.concat([merged_data, merged_data_all], ignore_index=True)
     merged_data['popularity_percentage'] = (merged_data['counts_most_recurrent'] / merged_data['counts']) * 100
     merged_data['popularity_percentage'] = merged_data['popularity_percentage'].round(2)
+
     # Convert 'month_year' to string format for JSON serialization
     merged_data['month_year'] = merged_data['month_year'].astype(str)
     merged_data.rename(columns={'month_year': 'date1'}, inplace=True)
 
     data = merged_data.to_dict(orient='records')
     return jsonify(data)
-
 
 
 def search_label_graph(filtered_df): 

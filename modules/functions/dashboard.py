@@ -99,36 +99,40 @@ def born_per_topics_date(date1=None, date2=None):
 
 # First dashboard graph function with filtered
 def born_per_date_label(date1, date2, granularite):
+    # Pre-treatments
     filtre = df_keyword['date1'].str.contains(r'^\d{4}-\d{2}-\d{2}$') & df_keyword['date1'].notna()
     df_filtre = df_keyword[filtre]
-    
-    # Ensure the label column is not null
     df_filtre2 = df_filtre[df_filtre['label'].notna()]
-    # Ensure the keyword column is not null and is not NaN or empty
     df_filtre3 = df_filtre2[df_filtre2['keywords'].notna() & (df_filtre2['keywords'].str.strip() != '')]
-    if date1 is not None:
+
+    # Filter option (dates - granularity)
+    if date1 is not None and date2 is not None:
         df_filtre3 = df_filtre3[(df_filtre3['date1'] >= date1) & (df_filtre3['date1'] <= date2)]
     if granularite == "annee":
         df_filtre3['date1'] = df_filtre3['date1'].str[:4]
     if granularite == "mois":
         df_filtre3['date1'] = df_filtre3['date1'].str[:7]
-    # Exclude specific keywords
-    excluded_keywords = [ 
-         'fact check','Fact Check', 'false news','fact Checks','fact-check', 'fake news', 'Fact Checks', 'Fake news', 'Facebook Fact-checks', 'PunditFact', 
-    ]
+    
+    df_filtre3 = df_filtre3.drop_duplicates(subset=['id1'])
 
-    # Filter out the excluded keywords
-    df_filtered = df_filtre3[~df_filtre3['keywords'].isin(excluded_keywords)]
+    # Exclude specific keywords
+    excluded_keywords = [
+        'fact check', 'false news', 'fact-check', 'fact checks', 'fake news', 'facebook fact-checks', 'punditfact', 'the news', 'facebook posts', 'online', 'viral content', 'tweet','tweets','facebook','facebooks'
+    ]
+    excluded_keywords_lower = [ keyword.lower() for keyword in excluded_keywords]
+    df_filtre3['keywords_lower'] = df_filtre3['keywords'].str.lower()
+    df_filtered = df_filtre3[~df_filtre3['keywords_lower'].isin(excluded_keywords_lower)]
+    df_filtered.drop(columns=['keywords_lower'], inplace=True)
 
     # Aggregate counts of unique claims by date and label
-    unique_claims = df_filtre3.drop_duplicates(subset=['id1'])
-    total_counts = unique_claims.groupby(['date1', 'label']).size().reset_index(name='counts')
+
+    total_counts = df_filtre3.groupby(['date1', 'label']).size().reset_index(name='counts')
     # Find the most recurrent keyword for each date-label combination
     keyword_counts = df_filtered.groupby(['date1', 'label', 'keywords']).size().reset_index(name='counts')
     most_recurrent_keyword = keyword_counts.loc[keyword_counts.groupby(['date1', 'label'])['counts'].idxmax()].reset_index(drop=True)
 
     # Calculate total counts for each date across all labels
-    total_counts_all = unique_claims.groupby(['date1']).size().reset_index(name='counts')
+    total_counts_all = df_filtre3.groupby(['date1']).size().reset_index(name='counts')
     total_counts_all['label'] = 'ALL'
     
     # Find the most recurrent entity for each date across all labels
@@ -161,9 +165,6 @@ def langue_per_label(dat1, dat2):
     final_grouped = filtre_group_notna.groupby(['reviewBodyLang', 'label'])['counts'].size().reset_index(name='counts')
     print(final_grouped)
     return final_grouped
-
-
-
 
 
 #################################################################   FOR A FUTUR SEARCH PART FUNCTION   #########################################################################

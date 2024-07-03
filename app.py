@@ -182,7 +182,6 @@ def search_entity4():
     filtered_df = filter_data_entity(df_entity, selectedEntities, firstDate, lastDate)
     return search_language_graph(filtered_df)
 
-
 ### ### Search form (Topic)
 @app.route('/search-topic1', methods=['GET'])
 def search_topic1():
@@ -193,8 +192,6 @@ def search_topic1():
     merged_df = pandas.merge(filtered_df, df_keyword[['claimReview_url','id2']], on='claimReview_url', how='left')
     return search_date_graph(merged_df, topic=topic)
 
-
-
 @app.route('/search-topic2', methods=['GET'])
 def search_topic2():
     topic = request.args.get('topic')
@@ -202,7 +199,6 @@ def search_topic2():
     lastDate = request.args.get('lastDate')
     filtered_df = filter_data_topic(topic, firstDate, lastDate)
     return search_label_graph(filtered_df)
-  
 
 @app.route('/search-topic3', methods=['GET'])
 def search_topic3():
